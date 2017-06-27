@@ -1,5 +1,8 @@
 package com.hybris.provider;
 
+import static com.google.common.base.Charsets.UTF_8;
+
+import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 
@@ -7,7 +10,12 @@ import org.jclouds.aws.ec2.AWSEC2Api;
 import org.jclouds.aws.ec2.features.AWSKeyPairApi;
 import org.jclouds.aws.ec2.reference.AWSEC2Constants;
 import org.jclouds.compute.ComputeService;
+import org.jclouds.domain.Credentials;
 import org.jclouds.ec2.domain.KeyPair;
+import org.jclouds.googlecloud.GoogleCredentialsFromJson;
+
+import com.google.common.base.Supplier;
+import com.google.common.io.Files;
 
 public enum Provider {
 	
@@ -113,7 +121,7 @@ public enum Provider {
 				credentials = this.properties.getProperty("amazon.credential");
 				break;
 			case GoogleCloudProvider:
-				credentials = "Implement GCP credential pending";
+				credentials = this.getGcpCredentialFromJsonKey(this.properties.getProperty("googlecloud.credential"));
 				break;
 				
 			default:
@@ -121,6 +129,22 @@ public enum Provider {
 		}
 		System.out.println(">> Get credential..");
 		return credentials;
+		
+	}
+	
+	private String getGcpCredentialFromJsonKey(String filename){
+		
+		try {
+            String fileContents = Files.toString(new File(filename), UTF_8);
+            Supplier<Credentials> credentialSupplier = new GoogleCredentialsFromJson(fileContents);
+            String credential = credentialSupplier.get().credential;
+            return credential;
+        } catch (IOException e) {
+            System.err.println("Exception reading private key from '%s': " + filename);
+            e.printStackTrace();
+            System.exit(1);
+            return null;
+        }
 		
 	}
 	
