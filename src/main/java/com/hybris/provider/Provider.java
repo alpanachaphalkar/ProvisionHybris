@@ -31,7 +31,7 @@ public enum Provider {
 	}
 	
 	public String getApi(){
-		System.out.println(">> Set Provider..");
+		System.out.println(">> Set Provider: " + this.toString());
 		return this.providerApi;
 	}
 	

@@ -8,6 +8,6 @@ public interface CloudServiceAction {
 	
 	// creates node or an instance based on gropuname
 	void createNode(OsFamily os, Cpu cpu, RamSize ramSize, DiskSize diskSize,
-					Location location, String groupName, String keyName, String pathToKey);
+					Region region, String groupName, String keyName, String pathToKey);
 	
 }

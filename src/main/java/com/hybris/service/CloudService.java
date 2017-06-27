@@ -58,7 +58,7 @@ public class CloudService implements CloudServiceAction{
 	}
 
 	public void createNode(OsFamily os, Cpu cpu, RamSize ram, DiskSize disk,
-							Location location, String groupName, String keyName, String pathToKey) {
+							Region region, String groupName, String keyName, String pathToKey) {
 		// TODO Auto-generated method stub
 		
 		NodeMetadata node = null;
@@ -73,17 +73,20 @@ public class CloudService implements CloudServiceAction{
 																			  .minRam(ram.getSize())
 																			  .minDisk(disk.getSize())
 																			  .osFamily(os)
-																			  .locationId(location.getID());
+																			  .locationId(region.getID());
 			Template template = templateBuilder.build();
-			TemplateOptions templateOptions = template.getOptions();
-			templateOptions.as(AWSEC2TemplateOptions.class).userMetadata("Name", groupName);
 			
-			String publicKey = Files.toString(new File(pathToKey), UTF_8);
-			Properties sshKeyProperties = new Properties();
-			sshKeyProperties = this.provider.setPublicKey(computeService, location.getID(), keyName, publicKey);
-			//templateOptions.as(AWSEC2TemplateOptions.class).keyPair(keyPairName);
-			templateOptions.as(AWSEC2TemplateOptions.class).keyPair(this.provider.getKeypair(sshKeyProperties));
-
+			if(this.provider.equals(Provider.AmazonWebService)){
+				TemplateOptions templateOptions = template.getOptions();
+				templateOptions.as(AWSEC2TemplateOptions.class).userMetadata("Name", groupName);
+				
+				String publicKey = Files.toString(new File(pathToKey), UTF_8);
+				Properties sshKeyProperties = new Properties();
+				sshKeyProperties = this.provider.setPublicKey(computeService, region.getID(), keyName, publicKey);
+				//templateOptions.as(AWSEC2TemplateOptions.class).keyPair(keyPairName);
+				templateOptions.as(AWSEC2TemplateOptions.class).keyPair(this.provider.getKeypair(sshKeyProperties));
+			}
+			
 			System.out.println(">> creation of node is beginning.. ");
 			node = Iterables.getOnlyElement(computeService.createNodesInGroup(groupName, 1, template));
 			
