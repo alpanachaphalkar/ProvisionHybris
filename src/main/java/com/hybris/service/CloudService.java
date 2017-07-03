@@ -15,6 +15,7 @@ import org.jclouds.compute.domain.OsFamily;
 import org.jclouds.compute.domain.Template;
 import org.jclouds.compute.domain.TemplateBuilder;
 import org.jclouds.compute.options.TemplateOptions;
+import org.jclouds.googlecomputeengine.compute.options.GoogleComputeEngineTemplateOptions;
 import org.jclouds.sshj.config.SshjSshClientModule;
 
 import com.google.common.collect.ImmutableSet;
@@ -68,30 +69,70 @@ public class CloudService implements CloudServiceAction{
 			
 			System.out.printf(">> adding node to group %s%n", groupName);
 			System.out.println();
-			TemplateBuilder templateBuilder = computeService.templateBuilder().os64Bit(cpu.getType())
-																			  .minCores(cpu.getCores())
-																			  .minRam(ram.getSize())
-																			  .minDisk(disk.getSize())
-																			  .osFamily(os)
-																			  .locationId(region.getID());
-			Template template = templateBuilder.build();
 			
-			if(this.provider.equals(Provider.AmazonWebService)){
-				TemplateOptions templateOptions = template.getOptions();
-				templateOptions.as(AWSEC2TemplateOptions.class).userMetadata("Name", groupName);
+			switch (this.provider) {
+			
+			case AmazonWebService:
 				
-				String publicKey = Files.toString(new File(pathToKey), UTF_8);
-				Properties sshKeyProperties = new Properties();
-				sshKeyProperties = this.provider.setPublicKey(computeService, region.getID(), keyName, publicKey);
+				TemplateBuilder awsTemplateBuilder = computeService.templateBuilder().os64Bit(cpu.getType())
+																					.minCores(cpu.getCores())
+																					.minRam(ram.getSize())
+																					.minDisk(disk.getSize())
+																					.osFamily(os)
+																					.locationId(region.getID());
+				Template awsTemplate = awsTemplateBuilder.build();
+		
+				TemplateOptions AwsTemplateOptions = awsTemplate.getOptions();
+				AwsTemplateOptions.as(AWSEC2TemplateOptions.class).userMetadata("Name", groupName);
+				
+				String AwsPublicKey = Files.toString(new File(pathToKey), UTF_8);
+				Properties AwsSshKeyProperties = new Properties();
+				AwsSshKeyProperties = this.provider.setPublicKey(computeService, region.getID(), keyName, AwsPublicKey);
 				//templateOptions.as(AWSEC2TemplateOptions.class).keyPair(keyPairName);
-				templateOptions.as(AWSEC2TemplateOptions.class).keyPair(this.provider.getKeypair(sshKeyProperties));
+				// Imports local ssh key to the node
+				AwsTemplateOptions.as(AWSEC2TemplateOptions.class).keyPair(this.provider.getKeypair(AwsSshKeyProperties));
+					
+				System.out.println(">> creation of node is beginning.. ");
+				node = Iterables.getOnlyElement(computeService.createNodesInGroup(groupName, 1, awsTemplate));
+				
+				System.out.println("<< node: " + node.getName() + "  with ID: " + node.getId() + "  with Private IP: " + node.getPrivateAddresses()
+				+ "  and Public IP: " + node.getPublicAddresses() + "  is created.");
+				
+				break;
+			
+			case GoogleCloudProvider:
+				
+				TemplateBuilder GcpTemplateBuilder = computeService.templateBuilder().os64Bit(cpu.getType())
+																					.minCores(cpu.getCores())
+																					.minRam(ram.getSize() * 1024)
+																					.minDisk(disk.getSize())
+																					.osFamily(os)
+																					.locationId(region.getID());
+				Template GcpTemplate = GcpTemplateBuilder.build();
+				
+				TemplateOptions GcpTemplateOptions = GcpTemplate.getOptions();
+				
+				//String GcpPublicKey = Files.toString(new File(pathToKey), UTF_8);
+				// Blocks project-wide SSH keys
+				//GcpTemplateOptions.as(GoogleComputeEngineTemplateOptions.class).userMetadata("sshKeys", GcpPublicKey); 
+				
+				// To use project-wide SSH keys
+				GcpTemplateOptions.as(GoogleComputeEngineTemplateOptions.class).autoCreateKeyPair(false);
+				
+				// Imports local ssh keys to node
+				String GcpPublicKey = Files.toString(new File(pathToKey), UTF_8);
+				GcpTemplateOptions.as(GoogleComputeEngineTemplateOptions.class).userMetadata("ssh-keys", GcpPublicKey);
+				
+				System.out.println(">> creation of node is beginning.. ");
+				node = Iterables.getOnlyElement(computeService.createNodesInGroup(groupName, 1, GcpTemplate));
+				
+				System.out.println("<< node: " + node.getName() + "  with ID: " + node.getId() + "  with Private IP: " + node.getPrivateAddresses()
+				+ "  and Public IP: " + node.getPublicAddresses() + "  is created.");
+				
+				break;
+				
 			}
 			
-			System.out.println(">> creation of node is beginning.. ");
-			node = Iterables.getOnlyElement(computeService.createNodesInGroup(groupName, 1, template));
-			
-			System.out.println("<< node: " + node.getName() + "  with ID: " + node.getId() + "  with Private IP: " + node.getPrivateAddresses()
-			+ "  and Public IP: " + node.getPublicAddresses() + "  is created.");
 			
 		} catch (Exception e) {
 			// TODO: handle exception

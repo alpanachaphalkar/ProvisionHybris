@@ -41,8 +41,9 @@ public enum Provider {
 		
 		if(this.equals(AmazonWebService)){
 			overrides.setProperty(AWSEC2Constants.PROPERTY_EC2_AMI_QUERY, "owner-id=137112412989;state=available;image-type=machine;root-device-type=ebs");
+			System.out.println(">> Overrides Properties set..");
 		}
-		System.out.println(">> Overrides Properties set..");
+		
 		return overrides;
 	}
 	
@@ -77,6 +78,7 @@ public enum Provider {
 				break;
 				
 			case GoogleCloudProvider:
+				
 				sshKeyProperties.setProperty("amazon.keypair", "");
 				sshKeyProperties.setProperty("googlecloud.keypair", "alpanchaphalkar");
 				break;
