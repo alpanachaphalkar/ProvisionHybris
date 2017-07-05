@@ -6,12 +6,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 
-import org.jclouds.aws.ec2.AWSEC2Api;
-import org.jclouds.aws.ec2.features.AWSKeyPairApi;
 import org.jclouds.aws.ec2.reference.AWSEC2Constants;
-import org.jclouds.compute.ComputeService;
 import org.jclouds.domain.Credentials;
-import org.jclouds.ec2.domain.KeyPair;
 import org.jclouds.googlecloud.GoogleCredentialsFromJson;
 
 import com.google.common.base.Supplier;
@@ -45,50 +41,6 @@ public enum Provider {
 		}
 		
 		return overrides;
-	}
-	
-	public String getKeypair(Properties sshKeyProperties) throws IOException{
-		this.properties.load(Provider.class.getClassLoader().getResourceAsStream("cloudprovider.properties"));
-		String keypairName = "";
-		
-		switch (this) {
-			case AmazonWebService:
-				keypairName = sshKeyProperties.getProperty("amazon.keypair");
-				break;
-			case GoogleCloudProvider:
-				keypairName = sshKeyProperties.getProperty("googlecloud.keypair");
-				break;
-			default:
-				keypairName = "";
-		}
-		System.out.println(">> Get key pair..");
-		return keypairName;
-	}
-	
-	public Properties setPublicKey(ComputeService computeService, String location, String keyName, String publicKey){
-		
-		Properties sshKeyProperties = new Properties();
-		
-		switch (this) {
-			case AmazonWebService:
-				AWSKeyPairApi keyPairApi = computeService.getContext().unwrapApi(AWSEC2Api.class).getKeyPairApiForRegion(location).get();
-				KeyPair keyPair = keyPairApi.importKeyPairInRegion(location, keyName, publicKey);
-				sshKeyProperties.setProperty("amazon.keypair", keyPair.getKeyName());
-				sshKeyProperties.setProperty("googlecloud.keypair", "");
-				break;
-				
-			case GoogleCloudProvider:
-				
-				sshKeyProperties.setProperty("amazon.keypair", "");
-				sshKeyProperties.setProperty("googlecloud.keypair", "alpanchaphalkar");
-				break;
-			
-			default:
-				sshKeyProperties.setProperty("amazon.keypair", "");
-				sshKeyProperties.setProperty("googlecloud.keypair", "");
-		}
-		System.out.println(">> Set key pair..");
-		return sshKeyProperties;
 	}
 	
 	

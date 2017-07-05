@@ -4,10 +4,11 @@ import static com.google.common.base.Charsets.UTF_8;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Properties;
 
 import org.jclouds.ContextBuilder;
+import org.jclouds.aws.ec2.AWSEC2Api;
 import org.jclouds.aws.ec2.compute.AWSEC2TemplateOptions;
+import org.jclouds.aws.ec2.features.AWSKeyPairApi;
 import org.jclouds.compute.ComputeService;
 import org.jclouds.compute.ComputeServiceContext;
 import org.jclouds.compute.domain.NodeMetadata;
@@ -15,6 +16,7 @@ import org.jclouds.compute.domain.OsFamily;
 import org.jclouds.compute.domain.Template;
 import org.jclouds.compute.domain.TemplateBuilder;
 import org.jclouds.compute.options.TemplateOptions;
+import org.jclouds.ec2.domain.KeyPair;
 import org.jclouds.googlecomputeengine.compute.options.GoogleComputeEngineTemplateOptions;
 import org.jclouds.sshj.config.SshjSshClientModule;
 
@@ -63,6 +65,7 @@ public class CloudService implements CloudServiceAction{
 		// TODO Auto-generated method stub
 		
 		NodeMetadata node = null;
+		
 		try {
 			
 			ComputeService computeService = initComputeService();
@@ -70,68 +73,61 @@ public class CloudService implements CloudServiceAction{
 			System.out.printf(">> adding node to group %s%n", groupName);
 			System.out.println();
 			
+			TemplateBuilder templateBuilder = computeService.templateBuilder()
+														.os64Bit(cpu.getType())
+														.minCores(cpu.getCores())
+														.minRam(ram.getSize())
+														.minDisk(disk.getSize())
+														.osFamily(os)
+														.locationId(region.getID());
+			Template template = templateBuilder.build();
+			
+			TemplateOptions templateOptions = template.getOptions();
+			
 			switch (this.provider) {
 			
 			case AmazonWebService:
 				
-				TemplateBuilder awsTemplateBuilder = computeService.templateBuilder().os64Bit(cpu.getType())
-																					.minCores(cpu.getCores())
-																					.minRam(ram.getSize())
-																					.minDisk(disk.getSize())
-																					.osFamily(os)
-																					.locationId(region.getID());
-				Template awsTemplate = awsTemplateBuilder.build();
-		
-				TemplateOptions AwsTemplateOptions = awsTemplate.getOptions();
-				AwsTemplateOptions.as(AWSEC2TemplateOptions.class).userMetadata("Name", groupName);
+				templateOptions.as(AWSEC2TemplateOptions.class).userMetadata("Name", groupName);
 				
 				String AwsPublicKey = Files.toString(new File(pathToKey), UTF_8);
-				Properties AwsSshKeyProperties = new Properties();
-				AwsSshKeyProperties = this.provider.setPublicKey(computeService, region.getID(), keyName, AwsPublicKey);
-				//templateOptions.as(AWSEC2TemplateOptions.class).keyPair(keyPairName);
-				// Imports local ssh key to the node
-				AwsTemplateOptions.as(AWSEC2TemplateOptions.class).keyPair(this.provider.getKeypair(AwsSshKeyProperties));
-					
-				System.out.println(">> creation of node is beginning.. ");
-				node = Iterables.getOnlyElement(computeService.createNodesInGroup(groupName, 1, awsTemplate));
+				AWSKeyPairApi keyPairApi = computeService.getContext().unwrapApi(AWSEC2Api.class).getKeyPairApiForRegion(region.getID()).get();
+				KeyPair keyPair = keyPairApi.importKeyPairInRegion(region.getID(), keyName, AwsPublicKey);
 				
-				System.out.println("<< node: " + node.getName() + "  with ID: " + node.getId() + "  with Private IP: " + node.getPrivateAddresses()
-				+ "  and Public IP: " + node.getPublicAddresses() + "  is created.");
+				//Use existing key pair in aws by key pair name
+				//templateOptions.as(AWSEC2TemplateOptions.class).keyPair(keyPairName);
+				
+				// Imports local ssh key to the node
+				System.out.printf(">> Importing public key %s%n", keyName);
+				System.out.println();
+				templateOptions.as(AWSEC2TemplateOptions.class).keyPair(keyPair.getKeyName());
 				
 				break;
 			
 			case GoogleCloudProvider:
-				
-				TemplateBuilder GcpTemplateBuilder = computeService.templateBuilder().os64Bit(cpu.getType())
-																					.minCores(cpu.getCores())
-																					.minRam(ram.getSize() * 1024)
-																					.minDisk(disk.getSize())
-																					.osFamily(os)
-																					.locationId(region.getID());
-				Template GcpTemplate = GcpTemplateBuilder.build();
-				
-				TemplateOptions GcpTemplateOptions = GcpTemplate.getOptions();
 				
 				//String GcpPublicKey = Files.toString(new File(pathToKey), UTF_8);
 				// Blocks project-wide SSH keys
 				//GcpTemplateOptions.as(GoogleComputeEngineTemplateOptions.class).userMetadata("sshKeys", GcpPublicKey); 
 				
 				// To use project-wide SSH keys
-				GcpTemplateOptions.as(GoogleComputeEngineTemplateOptions.class).autoCreateKeyPair(false);
+				templateOptions.as(GoogleComputeEngineTemplateOptions.class).autoCreateKeyPair(false);
 				
 				// Imports local ssh keys to node
 				String GcpPublicKey = Files.toString(new File(pathToKey), UTF_8);
-				GcpTemplateOptions.as(GoogleComputeEngineTemplateOptions.class).userMetadata("ssh-keys", GcpPublicKey);
-				
-				System.out.println(">> creation of node is beginning.. ");
-				node = Iterables.getOnlyElement(computeService.createNodesInGroup(groupName, 1, GcpTemplate));
-				
-				System.out.println("<< node: " + node.getName() + "  with ID: " + node.getId() + "  with Private IP: " + node.getPrivateAddresses()
-				+ "  and Public IP: " + node.getPublicAddresses() + "  is created.");
+				System.out.printf(">> Importing public key %s%n", keyName);
+				System.out.println();
+				templateOptions.as(GoogleComputeEngineTemplateOptions.class).userMetadata("ssh-keys", GcpPublicKey);
 				
 				break;
 				
 			}
+			
+			System.out.println(">> creation of node is beginning.. ");
+			node = Iterables.getOnlyElement(computeService.createNodesInGroup(groupName, 1, template));
+			
+			System.out.println("<< node: " + node.getName() + "  with ID: " + node.getId() + "  with Private IP: " + node.getPrivateAddresses()
+			+ "  and Public IP: " + node.getPublicAddresses() + "  is created.");
 			
 			
 		} catch (Exception e) {

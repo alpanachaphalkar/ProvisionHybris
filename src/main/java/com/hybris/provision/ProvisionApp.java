@@ -20,14 +20,20 @@ public class ProvisionApp {
 	public static void main( String[] args ) throws IOException{
 		
 		
-		CloudService service = new CloudService(Provider.GoogleCloudProvider);
+		/* ******************************************
+		 *		AWS EC2 Create Node					*
+		 * ******************************************/		
+/* 		CloudService service = new CloudService(Provider.AmazonWebService);
+		service.createNode(OsFamily.UBUNTU, Cpu.Two64bit, RamSize.Aws_Eight, DiskSize.Ten, 
+							Region.AWS_UsEast1, "hybris-dev-linux-001", "trial1", "C:\\cygwin64\\home\\D066624\\.ssh\\trial1.pub");*/
 		
 		
 		/* ******************************************
 		 *		GCP Create Node						*
 		 * ******************************************/
-		service.createNode(OsFamily.UBUNTU, Cpu.Two64bit, RamSize.Eight, DiskSize.Ten, 
-							Region.GCP_UsEast1b, "hybris-dev-linux-007", "alpanachaphalkar", "C:\\cygwin64\\home\\D066624\\.ssh\\alpanachaphalkar.pub");
+		CloudService service = new CloudService(Provider.GoogleCloudProvider);
+  		service.createNode(OsFamily.UBUNTU, Cpu.Two64bit, RamSize.Gcp_Eight, DiskSize.Ten, 
+							Region.GCP_UsEast1b, "hybris-dev-linux-001", "id_rsa", "C:\\cygwin64\\home\\D066624\\.ssh\\id_rsa.pub");
 		
 		
 		
@@ -47,6 +53,7 @@ public class ProvisionApp {
 		}*/
 		
 		
+		
 		/* ******************************************
 		 *		Listing locations in GCP			*
 		 * ******************************************/		
@@ -55,7 +62,6 @@ public class ProvisionApp {
 		for(Location location:locations){
 			System.out.println("Name: " + location.getDescription() + "  ID: " + location.getId());
 		}*/
-
 		
 		
 		
@@ -65,18 +71,7 @@ public class ProvisionApp {
 /*		service.initComputeService();
 		System.out.println("Initialization successful!");*/
 		
-		
-		
-		
-		/* ******************************************
-		 *		AWS EC2 Create Node					*
-		 * ******************************************/		
-/* 		CloudService service = new CloudService(Provider.AmazonWebService);
-		service.createNode(OsFamily.UBUNTU, Cpu.Two64bit, RamSize.Eight, DiskSize.Ten, 
-							Region.AWS_UsEast1, "hybris-dev-linux-003", "trial3", "C:\\cygwin64\\home\\D066624\\.ssh\\trail2.pub");*/
-
-		
-		
+	
 		
 		/* ******************************************
 		 *		Listing locations in AWS			*
