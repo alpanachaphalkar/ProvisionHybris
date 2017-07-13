@@ -23,17 +23,17 @@ public class ProvisionApp {
 		/* ******************************************
 		 *		AWS EC2 Create Node					*
 		 * ******************************************/		
-/* 		CloudService service = new CloudService(Provider.AmazonWebService);
+ 		CloudService service = new CloudService(Provider.AmazonWebService);
 		service.createNode(OsFamily.UBUNTU, Cpu.Two64bit, RamSize.Aws_Eight, DiskSize.Ten, 
-							Region.AWS_UsEast1, "hybris-dev-linux-001", "trial1", "C:\\cygwin64\\home\\D066624\\.ssh\\trial1.pub");*/
+							Region.AWS_UsEast1, "hybris-host-trial", "hybris-host-trial", "C:\\cygwin64\\home\\D066624\\.ssh\\id_rsa");
 		
 		
 		/* ******************************************
 		 *		GCP Create Node						*
 		 * ******************************************/
-		CloudService service = new CloudService(Provider.GoogleCloudProvider);
-  		service.createNode(OsFamily.UBUNTU, Cpu.Two64bit, RamSize.Gcp_Eight, DiskSize.Ten, 
-							Region.GCP_UsEast1b, "hybris-dev-linux-001", "id_rsa", "C:\\cygwin64\\home\\D066624\\.ssh\\id_rsa.pub");
+/*		CloudService service = new CloudService(Provider.GoogleCloudProvider);
+  		service.createNode(OsFamily.DEBIAN, Cpu.Two64bit, RamSize.Gcp_Eight, DiskSize.Ten, 
+							Region.GCP_UsEast1b, "hybris-dev-linux-001", "id_rsa", "C:\\cygwin64\\home\\D066624\\.ssh\\id_rsa.pub");*/
 		
 		
 		

@@ -18,6 +18,8 @@ import org.jclouds.compute.domain.TemplateBuilder;
 import org.jclouds.compute.options.TemplateOptions;
 import org.jclouds.ec2.domain.KeyPair;
 import org.jclouds.googlecomputeengine.compute.options.GoogleComputeEngineTemplateOptions;
+import org.jclouds.scriptbuilder.domain.Statement;
+import org.jclouds.scriptbuilder.statements.login.AdminAccess;
 import org.jclouds.sshj.config.SshjSshClientModule;
 
 import com.google.common.collect.ImmutableSet;
@@ -81,8 +83,11 @@ public class CloudService implements CloudServiceAction{
 														.osFamily(os)
 														.locationId(region.getID());
 			Template template = templateBuilder.build();
-			
 			TemplateOptions templateOptions = template.getOptions();
+			
+			// Note this will create a user with the same name as you on the node. ex. you can connect via ssh publicip.
+/*			Statement bootInstructions = AdminAccess.standard();
+			templateBuilder.options(templateOptions.runScript(bootInstructions));*/
 			
 			switch (this.provider) {
 			
@@ -90,7 +95,8 @@ public class CloudService implements CloudServiceAction{
 				
 				templateOptions.as(AWSEC2TemplateOptions.class).userMetadata("Name", groupName);
 				
-				String AwsPublicKey = Files.toString(new File(pathToKey), UTF_8);
+				String AwsPublicKey = Files.toString(new File(pathToKey + ".pub"), UTF_8);
+				//String AwsPrivateKey = Files.toString(new File(pathToKey), UTF_8);
 				AWSKeyPairApi keyPairApi = computeService.getContext().unwrapApi(AWSEC2Api.class).getKeyPairApiForRegion(region.getID()).get();
 				KeyPair keyPair = keyPairApi.importKeyPairInRegion(region.getID(), keyName, AwsPublicKey);
 				
@@ -101,6 +107,7 @@ public class CloudService implements CloudServiceAction{
 				System.out.printf(">> Importing public key %s%n", keyName);
 				System.out.println();
 				templateOptions.as(AWSEC2TemplateOptions.class).keyPair(keyPair.getKeyName());
+				//templateOptions.overrideLoginPrivateKey(AwsPrivateKey);
 				
 				break;
 			
@@ -129,6 +136,7 @@ public class CloudService implements CloudServiceAction{
 			System.out.println("<< node: " + node.getName() + "  with ID: " + node.getId() + "  with Private IP: " + node.getPrivateAddresses()
 			+ "  and Public IP: " + node.getPublicAddresses() + "  is created.");
 			
+			computeService.getContext().close();
 			
 		} catch (Exception e) {
 			// TODO: handle exception
