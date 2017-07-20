@@ -20,7 +20,7 @@ public class ProvisionApp {
 
 	public static void main( String[] args ) throws IOException{
 		
- 		String groupName = "java-hybris-try-013";
+ 		String groupName = "java-hybris-try-014";
  		String keyName = groupName;
  		
 		/* ******************************************
@@ -30,8 +30,8 @@ public class ProvisionApp {
  		ComputeService computeService = service.initComputeService();
  		
  		// Create Node or Instance.
-/*		service.createNode(computeService, OsFamily.UBUNTU, Cpu.Two64bit, RamSize.Aws_Eight, DiskSize.Ten, 
-							Region.AWS_UsEast1, groupName, keyName, "C:\\cygwin64\\home\\D066624\\.ssh\\id_rsa");*/
+		service.createNode(computeService, OsFamily.UBUNTU, Cpu.Two64bit, RamSize.Aws_Eight, DiskSize.Ten, 
+							Region.AWS_UsEast1, groupName, keyName, "C:\\cygwin64\\home\\D066624\\.ssh\\id_rsa");
 		
 /*		// Execute shell command on created instance.
 		service.executeCommand(computeService, groupName, "source /etc/environment");*/
