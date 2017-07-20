@@ -20,18 +20,18 @@ public class ProvisionApp {
 
 	public static void main( String[] args ) throws IOException{
 		
- 		String groupName = "java-hybris-try-017";
+ 		String groupName = "java-hybris-try-019";
  		String keyName = groupName;
  		
 		/* ******************************************
 		 *		AWS EC2 Create Node					*
 		 * ******************************************/		
- 		CloudService service = new CloudService(Provider.AmazonWebService);
- 		ComputeService computeService = service.initComputeService();
+/* 		CloudService service = new CloudService(Provider.AmazonWebService);
+ 		ComputeService computeService = service.initComputeService();*/
  		
  		// Create Node or Instance
-		service.createNode(computeService, OsFamily.UBUNTU, Cpu.Two64bit, RamSize.Aws_Eight, DiskSize.Ten, 
-							Region.AWS_UsEast1, groupName, keyName, "C:\\cygwin64\\home\\D066624\\.ssh\\id_rsa");
+/*		service.createNode(computeService, OsFamily.UBUNTU, Cpu.Two64bit, RamSize.Aws_Eight, DiskSize.Ten, 
+							Region.AWS_UsEast1, groupName, keyName, "C:\\cygwin64\\home\\D066624\\.ssh\\id_rsa");*/
 		
 		// Execute shell command on created instance.
 /* 		System.out.println(">> Command execution Begins!");
@@ -41,10 +41,32 @@ public class ProvisionApp {
 		// Execute shell script on created instances
 		
 		// Install Java on created instance
-		System.out.println(">> Java Installation Begins!");
+/*		System.out.println(">> Java Installation Begins!");
+		service.executeScript(computeService, groupName, "C:\\Users\\D066624\\Google Drive\\Rough\\Eclipse\\ProvisionHybris\\src\\main\\resources\\install_java.sh");
+		System.out.println("<< Java Installation Completed!");*/
+		
+		
+		// Install Hybris on created instance
+/*		System.out.println(">> Hybris Installation Begins!");
+		service.executeScript(computeService, groupName, "C:\\Users\\D066624\\Google Drive\\Rough\\Eclipse\\ProvisionHybris\\src\\main\\resources\\install_hybris.sh");
+		System.out.println("<< Hybris Installation Completed!");
+		
+		computeService.getContext().close();*/
+		
+		/* ******************************************
+		 *		GCP Create Node						*
+		 * ******************************************/
+		CloudService service = new CloudService(Provider.GoogleCloudProvider);
+  		ComputeService computeService = service.initComputeService();
+  		
+  		// Create Node or Instance
+  		service.createNode(computeService, OsFamily.UBUNTU, Cpu.Two64bit, RamSize.Gcp_Eight, DiskSize.Ten, 
+							Region.GCP_UsEast1b, groupName, keyName, "C:\\cygwin64\\home\\D066624\\.ssh\\id_rsa.pub");
+		
+  		// Install Java on created instance
+  		System.out.println(">> Java Installation Begins!");
 		service.executeScript(computeService, groupName, "C:\\Users\\D066624\\Google Drive\\Rough\\Eclipse\\ProvisionHybris\\src\\main\\resources\\install_java.sh");
 		System.out.println("<< Java Installation Completed!");
-		
 		
 		// Install Hybris on created instance
 		System.out.println(">> Hybris Installation Begins!");
@@ -52,16 +74,6 @@ public class ProvisionApp {
 		System.out.println("<< Hybris Installation Completed!");
 		
 		computeService.getContext().close();
-		
-		/* ******************************************
-		 *		GCP Create Node						*
-		 * ******************************************/
-/*		CloudService service = new CloudService(Provider.GoogleCloudProvider);
-  		ComputeService computeService = service.initComputeService();
-  		service.createNode(computeService, OsFamily.DEBIAN, Cpu.Two64bit, RamSize.Gcp_Eight, DiskSize.Ten, 
-							Region.GCP_UsEast1b, groupName, "id_rsa", "C:\\cygwin64\\home\\D066624\\.ssh\\id_rsa.pub");*/
-		
-		
 		
 		/* ******************************************
 		 *		Listing machine types in GCP		*
