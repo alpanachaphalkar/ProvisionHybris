@@ -3,6 +3,7 @@ package com.hybris.provision;
 import java.io.IOException;
 import java.util.Set;
 
+import org.jclouds.compute.ComputeService;
 import org.jclouds.compute.domain.Hardware;
 import org.jclouds.compute.domain.OsFamily;
 import org.jclouds.domain.Location;
@@ -20,20 +21,29 @@ public class ProvisionApp {
 	public static void main( String[] args ) throws IOException{
 		
 		
+ 		String groupName = "java-hybris-try-010";
+ 		String keyName = groupName;
+ 		
 		/* ******************************************
 		 *		AWS EC2 Create Node					*
 		 * ******************************************/		
  		CloudService service = new CloudService(Provider.AmazonWebService);
-		service.createNode(OsFamily.UBUNTU, Cpu.Two64bit, RamSize.Aws_Eight, DiskSize.Ten, 
-							Region.AWS_UsEast1, "hybris-host-trial", "hybris-host-trial", "C:\\cygwin64\\home\\D066624\\.ssh\\id_rsa");
+ 		ComputeService computeService = service.initComputeService();
+ 		
+		service.createNode(computeService, OsFamily.UBUNTU, Cpu.Two64bit, RamSize.Aws_Eight, DiskSize.Ten, 
+							Region.AWS_UsEast1, groupName, keyName, "C:\\cygwin64\\home\\D066624\\.ssh\\id_rsa");
+		
+/*		// Execute shell command on created instance
+		service.executeCommand(computeService, groupName, "source /etc/environment");*/
 		
 		
 		/* ******************************************
 		 *		GCP Create Node						*
 		 * ******************************************/
 /*		CloudService service = new CloudService(Provider.GoogleCloudProvider);
-  		service.createNode(OsFamily.DEBIAN, Cpu.Two64bit, RamSize.Gcp_Eight, DiskSize.Ten, 
-							Region.GCP_UsEast1b, "hybris-dev-linux-001", "id_rsa", "C:\\cygwin64\\home\\D066624\\.ssh\\id_rsa.pub");*/
+  		ComputeService computeService = service.initComputeService();
+  		service.createNode(computeService, OsFamily.DEBIAN, Cpu.Two64bit, RamSize.Gcp_Eight, DiskSize.Ten, 
+							Region.GCP_UsEast1b, groupName, "id_rsa", "C:\\cygwin64\\home\\D066624\\.ssh\\id_rsa.pub");*/
 		
 		
 		

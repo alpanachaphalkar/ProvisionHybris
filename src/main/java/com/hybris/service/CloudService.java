@@ -4,6 +4,7 @@ import static com.google.common.base.Charsets.UTF_8;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 import org.jclouds.ContextBuilder;
 import org.jclouds.aws.ec2.AWSEC2Api;
@@ -11,17 +12,23 @@ import org.jclouds.aws.ec2.compute.AWSEC2TemplateOptions;
 import org.jclouds.aws.ec2.features.AWSKeyPairApi;
 import org.jclouds.compute.ComputeService;
 import org.jclouds.compute.ComputeServiceContext;
+import org.jclouds.compute.RunScriptOnNodesException;
+import org.jclouds.compute.domain.ExecResponse;
 import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.domain.OsFamily;
 import org.jclouds.compute.domain.Template;
 import org.jclouds.compute.domain.TemplateBuilder;
 import org.jclouds.compute.options.TemplateOptions;
+import org.jclouds.compute.predicates.NodePredicates;
+import org.jclouds.domain.LoginCredentials;
 import org.jclouds.ec2.domain.KeyPair;
 import org.jclouds.googlecomputeengine.compute.options.GoogleComputeEngineTemplateOptions;
 import org.jclouds.scriptbuilder.domain.Statement;
+import org.jclouds.scriptbuilder.domain.Statements;
 import org.jclouds.scriptbuilder.statements.login.AdminAccess;
 import org.jclouds.sshj.config.SshjSshClientModule;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.io.Files;
@@ -61,8 +68,25 @@ public class CloudService implements CloudServiceAction{
 		return computeServiceContext.getComputeService();
 		
 	}
-
-	public void createNode(OsFamily os, Cpu cpu, RamSize ram, DiskSize disk,
+	
+	private static LoginCredentials getLoginForProvision(){
+		
+		try{
+			
+			String user = "ubuntu";
+			String privateKey = Files.toString(new File("C:\\cygwin64\\home\\D066624\\.ssh\\id_rsa"), Charsets.UTF_8);
+			return LoginCredentials.builder().user(user).privateKey(privateKey).build();
+		
+		} catch (Exception e) {
+			System.err.println("Error Reading Private Key: " + e.getMessage());
+			System.exit(1);
+		}
+		
+		return null;
+		
+	}
+	
+	public void createNode(ComputeService computeService, OsFamily os, Cpu cpu, RamSize ram, DiskSize disk,
 							Region region, String groupName, String keyName, String pathToKey) {
 		// TODO Auto-generated method stub
 		
@@ -70,7 +94,7 @@ public class CloudService implements CloudServiceAction{
 		
 		try {
 			
-			ComputeService computeService = initComputeService();
+			computeService = initComputeService();
 			
 			System.out.printf(">> adding node to group %s%n", groupName);
 			System.out.println();
@@ -143,6 +167,34 @@ public class CloudService implements CloudServiceAction{
 			e.printStackTrace();
 		}
 		
+		
+	}
+
+/*	public void executeCommand(ComputeService computeService, String groupName, String command) {
+		// TODO Auto-generated method stub
+		LoginCredentials login = getLoginForProvision();
+	    
+	    try
+	    {
+	      Map<? extends NodeMetadata, ExecResponse> responses = 
+	        computeService.runScriptOnNodesMatching(NodePredicates.inGroup(groupName), 
+	        Statements.exec(command), 
+	        TemplateOptions.Builder.runScript(command).overrideLoginCredentials(login));
+	      
+	      for (Map.Entry<? extends NodeMetadata, ExecResponse> response : responses.entrySet()) {
+	        System.out.printf("<< node %s: %s%n", response.getKey().getId(), 
+	          Iterables.concat(response.getKey().getPrivateAddresses(), response.getKey().getPublicAddresses()));
+	        System.out.printf("<<     %s%n", response.getValue());
+	      }
+	    }
+	    catch (RunScriptOnNodesException e)
+	    {
+	      e.printStackTrace();
+	    }
+	}*/
+
+	public void executeScript(ComputeService computeService, String groupName, String pathToScript) {
+		// TODO Auto-generated method stub
 		
 	}
 	
