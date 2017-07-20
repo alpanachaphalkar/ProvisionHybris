@@ -35,7 +35,7 @@ echo "###################################### Download Hybris completed! ########
 
 # Install and Setup Hybris Reciepe
 cd $HYBRIS_INSTALLER_RECIPE_SCRIPT_FOLDER
-$HYBRIS_INSTALLER_RECIPE_SCRIPT_PATH -r $ACCELERATOR_TYPE
+sudo $HYBRIS_INSTALLER_RECIPE_SCRIPT_PATH -r $ACCELERATOR_TYPE
 echo "###################################### Installation of Reciepe ${ACCELERATOR_TYPE} completed! ######################################"
 
 # Build Hybris eCommerce

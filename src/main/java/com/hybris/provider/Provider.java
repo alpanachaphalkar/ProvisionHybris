@@ -5,8 +5,10 @@ import static com.google.common.base.Charsets.UTF_8;
 import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import org.jclouds.aws.ec2.reference.AWSEC2Constants;
+import org.jclouds.compute.config.ComputeServiceProperties;
 import org.jclouds.domain.Credentials;
 import org.jclouds.googlecloud.GoogleCredentialsFromJson;
 
@@ -37,9 +39,11 @@ public enum Provider {
 		
 		if(this.equals(AmazonWebService)){
 			overrides.setProperty(AWSEC2Constants.PROPERTY_EC2_AMI_QUERY, "owner-id=137112412989;state=available;image-type=machine;root-device-type=ebs");
-			System.out.println(">> Overrides Properties set..");
 		}
 		
+		long scriptTimeout = TimeUnit.MILLISECONDS.convert(2, TimeUnit.HOURS);
+		overrides.setProperty(ComputeServiceProperties.TIMEOUT_SCRIPT_COMPLETE, scriptTimeout + "");
+		System.out.println(">> Overrides Properties set..");
 		return overrides;
 	}
 	

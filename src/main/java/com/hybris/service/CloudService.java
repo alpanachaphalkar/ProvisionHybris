@@ -168,7 +168,7 @@ public class CloudService implements CloudServiceAction{
 		
 	}
 
-/*	public void executeCommand(ComputeService computeService, String groupName, String command) {
+	public void executeCommand(ComputeService computeService, String groupName, String command) {
 		// TODO Auto-generated method stub
 		LoginCredentials login = getLoginForProvision();
 	    
@@ -187,7 +187,7 @@ public class CloudService implements CloudServiceAction{
 	    catch (RunScriptOnNodesException e) {
 	      e.printStackTrace();
 	    }
-	}*/
+	}
 
 	public void executeScript(ComputeService computeService, String groupName, String pathToScript) {
 		// TODO Auto-generated method stub
