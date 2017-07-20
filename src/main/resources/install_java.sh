@@ -17,6 +17,9 @@ DEFAULT_JAVA_PATH="/usr/bin/java"
 DEFAULT_JAVAC_PATH="/usr/bin/javac"
 ENVIRONMENT_FILE_PATH="/etc/environment"
 BASHRC_FILE_PATH="/root/.bashrc"
+BASH_PROFILE_FILE_PATH="/root/.profile"
+UBUNTU_BASHRC_FILE_PATH="/home/ubuntu/.bashrc"
+UBUNTU_BASH_PROFILE_FILE_PATH="/home/ubuntu/.profile"
 HOSTS_FILE_PATH="/etc/hosts"
 
 echo "127.0.0.1 ${HOSTNAME}" >>$HOSTS_FILE_PATH
@@ -47,7 +50,12 @@ java -version
 # Setting JAVA_HOME environment variable
 echo "JAVA_HOME=${JVM_DIR}" >$ENVIRONMENT_FILE_PATH
 echo "PATH=${JVM_DIR}bin:${PATH}" >>$ENVIRONMENT_FILE_PATH
+
 echo "source ${ENVIRONMENT_FILE_PATH}" >>$BASHRC_FILE_PATH
-echo "export JAVA_HOME=${JVM_DIR}" >>$BASHRC_FILE_PATH
-echo "export PATH=${JVM_DIR}bin:${PATH}" >>$BASHRC_FILE_PATH
-source $BASHRC_FILE_PATH
+echo "JAVA_HOME=${JVM_DIR}" >>$BASHRC_FILE_PATH
+echo "PATH=${JVM_DIR}bin:${PATH}" >>$BASHRC_FILE_PATH
+
+echo "source ${ENVIRONMENT_FILE_PATH}" >>$BASH_PROFILE_FILE_PATH
+echo "JAVA_HOME=${JVM_DIR}" >>$BASH_PROFILE_FILE_PATH
+echo "PATH=${JVM_DIR}bin:${PATH}" >>$BASH_PROFILE_FILE_PATH
+source $BASH_PROFILE_FILE_PATH

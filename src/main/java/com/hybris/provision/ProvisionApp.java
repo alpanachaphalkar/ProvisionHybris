@@ -20,7 +20,7 @@ public class ProvisionApp {
 
 	public static void main( String[] args ) throws IOException{
 		
- 		String groupName = "java-hybris-try-010";
+ 		String groupName = "java-hybris-try-013";
  		String keyName = groupName;
  		
 		/* ******************************************
@@ -30,8 +30,8 @@ public class ProvisionApp {
  		ComputeService computeService = service.initComputeService();
  		
  		// Create Node or Instance.
-		service.createNode(computeService, OsFamily.UBUNTU, Cpu.Two64bit, RamSize.Aws_Eight, DiskSize.Ten, 
-							Region.AWS_UsEast1, groupName, keyName, "C:\\cygwin64\\home\\D066624\\.ssh\\id_rsa");
+/*		service.createNode(computeService, OsFamily.UBUNTU, Cpu.Two64bit, RamSize.Aws_Eight, DiskSize.Ten, 
+							Region.AWS_UsEast1, groupName, keyName, "C:\\cygwin64\\home\\D066624\\.ssh\\id_rsa");*/
 		
 /*		// Execute shell command on created instance.
 		service.executeCommand(computeService, groupName, "source /etc/environment");*/
@@ -45,9 +45,9 @@ public class ProvisionApp {
 		
 		
 		// Install Hybris on created instance
-		System.out.println(">> Hybris Installation Begins!");
+/*		System.out.println(">> Hybris Installation Begins!");
 		service.executeScript(computeService, groupName, "C:\\Users\\D066624\\Google Drive\\Rough\\Eclipse\\ProvisionHybris\\src\\main\\resources\\install_hybris.sh");
-		System.out.println("<< Hybris Installation Completed!");
+		System.out.println("<< Hybris Installation Completed!");*/
 		
 		computeService.getContext().close();
 		

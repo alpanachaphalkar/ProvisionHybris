@@ -22,10 +22,11 @@ import org.jclouds.compute.options.TemplateOptions;
 import org.jclouds.compute.predicates.NodePredicates;
 import org.jclouds.domain.LoginCredentials;
 import org.jclouds.ec2.domain.KeyPair;
+import org.jclouds.enterprise.config.EnterpriseConfigurationModule;
 import org.jclouds.googlecomputeengine.compute.options.GoogleComputeEngineTemplateOptions;
+import org.jclouds.logging.slf4j.config.SLF4JLoggingModule;
 import org.jclouds.scriptbuilder.domain.Statement;
 import org.jclouds.scriptbuilder.domain.Statements;
-import org.jclouds.scriptbuilder.statements.login.AdminAccess;
 import org.jclouds.sshj.config.SshjSshClientModule;
 
 import com.google.common.base.Charsets;
@@ -55,7 +56,9 @@ public class CloudService implements CloudServiceAction{
 															new EnterpriseConfigurationModule());
 		 */
 		
-		Iterable<Module> modules = ImmutableSet.<Module> of( new SshjSshClientModule() );
+		Iterable<Module> modules = ImmutableSet.<Module> of( new SshjSshClientModule(), 
+															 new SLF4JLoggingModule(),
+															 new EnterpriseConfigurationModule());
 		
 		ContextBuilder builder = ContextBuilder.newBuilder(this.provider.getApi())
 			.credentials(this.provider.getIdentity(), this.provider.getCredential())
@@ -91,8 +94,6 @@ public class CloudService implements CloudServiceAction{
 		// TODO Auto-generated method stub
 		
 		try {
-			
-			computeService = initComputeService();
 			
 			System.out.printf(">> adding node to group %s%n", groupName);
 			System.out.println();
