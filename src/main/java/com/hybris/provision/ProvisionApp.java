@@ -20,7 +20,6 @@ public class ProvisionApp {
 
 	public static void main( String[] args ) throws IOException{
 		
-		
  		String groupName = "java-hybris-try-010";
  		String keyName = groupName;
  		
@@ -30,12 +29,27 @@ public class ProvisionApp {
  		CloudService service = new CloudService(Provider.AmazonWebService);
  		ComputeService computeService = service.initComputeService();
  		
+ 		// Create Node or Instance.
 		service.createNode(computeService, OsFamily.UBUNTU, Cpu.Two64bit, RamSize.Aws_Eight, DiskSize.Ten, 
 							Region.AWS_UsEast1, groupName, keyName, "C:\\cygwin64\\home\\D066624\\.ssh\\id_rsa");
 		
-/*		// Execute shell command on created instance
+/*		// Execute shell command on created instance.
 		service.executeCommand(computeService, groupName, "source /etc/environment");*/
 		
+		// Execute shell script on created instances
+		
+		// Install Java on created instance
+		System.out.println(">> Java Installation Begins!");
+		service.executeScript(computeService, groupName, "C:\\Users\\D066624\\Google Drive\\Rough\\Eclipse\\ProvisionHybris\\src\\main\\resources\\install_java.sh");
+		System.out.println("<< Java Installation Completed!");
+		
+		
+		// Install Hybris on created instance
+		System.out.println(">> Hybris Installation Begins!");
+		service.executeScript(computeService, groupName, "C:\\Users\\D066624\\Google Drive\\Rough\\Eclipse\\ProvisionHybris\\src\\main\\resources\\install_hybris.sh");
+		System.out.println("<< Hybris Installation Completed!");
+		
+		computeService.getContext().close();
 		
 		/* ******************************************
 		 *		GCP Create Node						*

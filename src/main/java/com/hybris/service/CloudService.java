@@ -90,8 +90,6 @@ public class CloudService implements CloudServiceAction{
 							Region region, String groupName, String keyName, String pathToKey) {
 		// TODO Auto-generated method stub
 		
-		NodeMetadata node = null;
-		
 		try {
 			
 			computeService = initComputeService();
@@ -155,12 +153,11 @@ public class CloudService implements CloudServiceAction{
 			}
 			
 			System.out.println(">> creation of node is beginning.. ");
-			node = Iterables.getOnlyElement(computeService.createNodesInGroup(groupName, 1, template));
+			NodeMetadata node = Iterables.getOnlyElement(computeService.createNodesInGroup(groupName, 1, template));
 			
 			System.out.println("<< node: " + node.getName() + "  with ID: " + node.getId() + "  with Private IP: " + node.getPrivateAddresses()
 			+ "  and Public IP: " + node.getPublicAddresses() + "  is created.");
 			
-			computeService.getContext().close();
 			
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -174,8 +171,7 @@ public class CloudService implements CloudServiceAction{
 		// TODO Auto-generated method stub
 		LoginCredentials login = getLoginForProvision();
 	    
-	    try
-	    {
+	    try {
 	      Map<? extends NodeMetadata, ExecResponse> responses = 
 	        computeService.runScriptOnNodesMatching(NodePredicates.inGroup(groupName), 
 	        Statements.exec(command), 
@@ -187,8 +183,7 @@ public class CloudService implements CloudServiceAction{
 	        System.out.printf("<<     %s%n", response.getValue());
 	      }
 	    }
-	    catch (RunScriptOnNodesException e)
-	    {
+	    catch (RunScriptOnNodesException e) {
 	      e.printStackTrace();
 	    }
 	}*/
@@ -196,6 +191,27 @@ public class CloudService implements CloudServiceAction{
 	public void executeScript(ComputeService computeService, String groupName, String pathToScript) {
 		// TODO Auto-generated method stub
 		
+		File script = new File(pathToScript);
+	    LoginCredentials login = getLoginForProvision();
+	    
+	    try {
+		      Map<? extends NodeMetadata, ExecResponse> responses = 
+		      computeService.runScriptOnNodesMatching(NodePredicates.inGroup(groupName), 
+		      Files.toString(script, Charsets.UTF_8), 
+		      TemplateOptions.Builder.runScript(Files.toString(script, Charsets.UTF_8)).overrideLoginCredentials(login));
+		      
+	      for (Map.Entry<? extends NodeMetadata, ExecResponse> response : responses.entrySet()) {
+	        System.out.printf("<< node %s: %s%n", response.getKey().getId(), Iterables.concat(response.getKey().getPrivateAddresses(), response.getKey().getPublicAddresses()));
+	        System.out.printf("<<     %s%n", response.getValue());
+	      }
+	      
+	    }
+	    catch (RunScriptOnNodesException e) {
+	      e.printStackTrace();
+	    }
+	    catch (IOException e) {
+	      e.printStackTrace();
+	    }
 	}
 	
 	
