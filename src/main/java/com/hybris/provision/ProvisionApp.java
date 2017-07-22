@@ -19,60 +19,54 @@ import com.hybris.provider.specifications.*;
 public class ProvisionApp {
 
 	public static void main( String[] args ) throws IOException{
-		
- 		String groupName = "java-hybris-try-019";
- 		String keyName = groupName;
  		
 		/* ******************************************
-		 *		AWS EC2 Create Node					*
+		 *		AWS Provider Compute Service		*
 		 * ******************************************/		
-/* 		CloudService service = new CloudService(Provider.AmazonWebService);
- 		ComputeService computeService = service.initComputeService();*/
  		
  		// Create Node or Instance
 /*		service.createNode(computeService, OsFamily.UBUNTU, Cpu.Two64bit, RamSize.Aws_Eight, DiskSize.Ten, 
 							Region.AWS_UsEast1, groupName, keyName, "C:\\cygwin64\\home\\D066624\\.ssh\\id_rsa");*/
+
+		/* ******************************************
+		 *		GCP Provider Compute Service		*
+		 * ******************************************/
+		CloudService service = new CloudService(Provider.GoogleCloudProvider);
+  		ComputeService computeService = service.initComputeService();
+  		
+  		
+  		// Compute Service Specifications
+  		String groupName = "java-hybris-try-019";
+ 		String keyName = groupName;
+ 		OsFamily os = OsFamily.UBUNTU;
+ 		Cpu cpu = Cpu.Two64bit;
+ 		RamSize ramSize = RamSize.Eight;
+ 		DiskSize diskSize = DiskSize.Ten;
+ 		Region region = service.getRegion();
+ 		String javaInstallationScript = "C:\\Users\\D066624\\Google Drive\\Rough\\Eclipse\\ProvisionHybris\\src\\main\\resources\\install_java.sh";
+  		String hybrisInstallationScript = "C:\\Users\\D066624\\Google Drive\\Rough\\Eclipse\\ProvisionHybris\\src\\main\\resources\\install_hybris.sh";
+ 		
+  		// Create Node or Instance
+  		service.createNode(computeService, os, cpu, service.getRamSize(ramSize), diskSize, 
+							region, groupName, keyName, service.getKeyToSsh());
 		
 		// Execute shell command on created instance.
 /* 		System.out.println(">> Command execution Begins!");
 		service.executeCommand(computeService, groupName, "sudo su");
 		System.out.println("<< Command execution Completed!");*/
-		
-		// Execute shell script on created instances
-		
-		// Install Java on created instance
-/*		System.out.println(">> Java Installation Begins!");
-		service.executeScript(computeService, groupName, "C:\\Users\\D066624\\Google Drive\\Rough\\Eclipse\\ProvisionHybris\\src\\main\\resources\\install_java.sh");
-		System.out.println("<< Java Installation Completed!");*/
-		
-		
-		// Install Hybris on created instance
-/*		System.out.println(">> Hybris Installation Begins!");
-		service.executeScript(computeService, groupName, "C:\\Users\\D066624\\Google Drive\\Rough\\Eclipse\\ProvisionHybris\\src\\main\\resources\\install_hybris.sh");
-		System.out.println("<< Hybris Installation Completed!");
-		
-		computeService.getContext().close();*/
-		
-		/* ******************************************
-		 *		GCP Create Node						*
-		 * ******************************************/
-		CloudService service = new CloudService(Provider.GoogleCloudProvider);
-  		ComputeService computeService = service.initComputeService();
   		
-  		// Create Node or Instance
-  		service.createNode(computeService, OsFamily.UBUNTU, Cpu.Two64bit, RamSize.Gcp_Eight, DiskSize.Ten, 
-							Region.GCP_UsEast1b, groupName, keyName, "C:\\cygwin64\\home\\D066624\\.ssh\\id_rsa.pub");
-		
+  		
   		// Install Java on created instance
   		System.out.println(">> Java Installation Begins!");
-		service.executeScript(computeService, groupName, "C:\\Users\\D066624\\Google Drive\\Rough\\Eclipse\\ProvisionHybris\\src\\main\\resources\\install_java.sh");
+		service.executeScript(computeService, groupName, javaInstallationScript);
 		System.out.println("<< Java Installation Completed!");
 		
 		// Install Hybris on created instance
 		System.out.println(">> Hybris Installation Begins!");
-		service.executeScript(computeService, groupName, "C:\\Users\\D066624\\Google Drive\\Rough\\Eclipse\\ProvisionHybris\\src\\main\\resources\\install_hybris.sh");
+		service.executeScript(computeService, groupName, hybrisInstallationScript);
 		System.out.println("<< Hybris Installation Completed!");
 		
+		// Closing the compute service
 		computeService.getContext().close();
 		
 		/* ******************************************

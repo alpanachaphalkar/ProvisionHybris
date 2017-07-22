@@ -47,7 +47,6 @@ public enum Provider {
 		return overrides;
 	}
 	
-	
 	public String getIdentity() throws IOException{
 		
 		this.properties.load(Provider.class.getClassLoader().getResourceAsStream("cloudprovider.properties"));

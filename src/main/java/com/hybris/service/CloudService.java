@@ -48,6 +48,10 @@ public class CloudService implements CloudServiceAction{
 		this.provider = provider;
 	}
 	
+	public Provider getProvider(){
+		return this.provider;
+	}
+	
 	public ComputeService initComputeService() throws IOException{
 		
 		/*Iterable<Module> modules = ImmutableSet.<Module> of(
@@ -89,7 +93,59 @@ public class CloudService implements CloudServiceAction{
 		
 	}
 	
-	public void createNode(ComputeService computeService, OsFamily os, Cpu cpu, RamSize ram, DiskSize disk,
+	public String getKeyToSsh(){
+		
+		String pathToPublicKey = "C:\\cygwin64\\home\\D066624\\.ssh\\id_rsa.pub";
+ 	    String pathToPrivateKey = "C:\\cygwin64\\home\\D066624\\.ssh\\id_rsa";
+ 	    String keyToSsh = null;
+ 	    
+ 	    switch (this.provider) {
+		case AmazonWebService:
+			keyToSsh = pathToPrivateKey;
+			break;
+		case GoogleCloudProvider:
+			keyToSsh = pathToPublicKey;
+			break;
+		default:
+			break;
+		}
+ 	    
+ 	    return keyToSsh;
+	}
+	
+	public int getRamSize(RamSize ramSize){
+		
+		switch (this.provider) {
+		case AmazonWebService:
+			return ramSize.getSize();
+		case GoogleCloudProvider:
+			return ramSize.getSize() * 1024;
+		default:
+			return 0;
+		}
+		
+	}	
+	
+	public Region getRegion(){
+		Region region = null;
+		
+		switch (this.provider) {
+		case AmazonWebService:
+			region = Region.AWS_UsEast1;
+			break;
+		
+		case GoogleCloudProvider:
+			region = Region.GCP_UsEast1b;
+			break;
+			
+		default:
+			break;
+		}
+		
+		return region;
+	}
+	
+	public void createNode(ComputeService computeService, OsFamily os, Cpu cpu, int ramSize, DiskSize disk,
 							Region region, String groupName, String keyName, String pathToKey) {
 		// TODO Auto-generated method stub
 		
@@ -101,7 +157,7 @@ public class CloudService implements CloudServiceAction{
 			TemplateBuilder templateBuilder = computeService.templateBuilder()
 														.os64Bit(cpu.getType())
 														.minCores(cpu.getCores())
-														.minRam(ram.getSize())
+														.minRam(ramSize)
 														.minDisk(disk.getSize())
 														.osFamily(os)
 														.locationId(region.getID());
