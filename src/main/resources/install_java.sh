@@ -1,14 +1,11 @@
 #!/bin/bash
 
+#$1="hybris-demo-app-004.hybrishosting.com"
 PACKAGES_DIR="/opt/packages/"
 JAVA_FOLDER="/usr/lib/jvm/java-8-oracle/"
 JAVA_HOME="/usr/lib/jvm/java-8-oracle/bin/java"
 JAVAC_HOME="/usr/lib/jvm/java-8-oracle/bin/javac"
 JAVA_PACKAGES_URI="java-packages/"
-#$1="http://54.210.0.102/"
-#$2="jdk-8u131-linux-x64.tar.gz"
-#$3="hybris-commerce-suite-6.2.0.4.zip"
-#$4="b2c_acc"
 REPO_SERVER="http://54.210.0.102/"
 JAVA_PACKAGE="jdk-8u131-linux-x64.tar.gz"
 JAVA_PACKAGE_URL="$REPO_SERVER$JAVA_PACKAGES_URI$JAVA_PACKAGE"
@@ -20,12 +17,13 @@ BASHRC_FILE_PATH="/etc/bash.bashrc"
 BASH_PROFILE_FILE_PATH="/etc/profile"
 BASH_PROFILE_JAVA_HOME_SCRIPT="/etc/profile.d/java.sh"
 HOSTS_FILE_PATH="/etc/hosts"
-CUSTOM_HOSTNAME="hybris-demo-app-002.hybrishosting.com"
+#CUSTOM_HOSTNAME="hybris-demo-app-003.hybrishosting.com"
 
-hostname -b $CUSTOM_HOSTNAME
-echo "127.0.0.1 ${HOSTNAME}" >>$HOSTS_FILE_PATH
+#hostname -b $CUSTOM_HOSTNAME
+hostname -b $1
 mkdir -p $PACKAGES_DIR
 cd $PACKAGES_DIR
+echo "127.0.0.1 `hostname`" >>$HOSTS_FILE_PATH
 
 # Download Java
 # wget "http://54.210.0.102/java-packages/jdk-8u131-linux-x64.tar.gz" -P /opt/packages

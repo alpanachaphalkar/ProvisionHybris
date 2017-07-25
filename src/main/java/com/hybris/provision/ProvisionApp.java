@@ -2,11 +2,13 @@ package com.hybris.provision;
 
 import java.io.IOException;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.jclouds.compute.ComputeService;
 import org.jclouds.compute.domain.Hardware;
 import org.jclouds.compute.domain.OsFamily;
 import org.jclouds.domain.Location;
+import org.jclouds.scriptbuilder.ScriptBuilder;
 
 import com.hybris.service.CloudService;
 import com.hybris.provider.Provider;
@@ -17,12 +19,13 @@ import com.hybris.provider.specifications.*;
  *
  */
 public class ProvisionApp {
-
+	
 	public static void main( String[] args ) throws IOException{
  		
 		/* ******************************************
 		 *		AWS Provider Compute Service		*
-		 * ******************************************/		
+		 * ******************************************/	
+		long timeStart = System.currentTimeMillis();
 		CloudService service = new CloudService(Provider.AmazonWebService);
 		
  		// Create Node or Instance
@@ -39,38 +42,56 @@ public class ProvisionApp {
 				
   		// Compute Service Specifications
 		ComputeService computeService = service.initComputeService();
-  		String groupName = "hybris-demo-app-002";
+		String groupName = "hybris-demo-app-017";
+		String hostName = groupName + ".hybrishosting.com";
  		String keyName = groupName;
  		OsFamily os = OsFamily.UBUNTU;
  		Cpu cpu = Cpu.Two64bit;
  		RamSize ramSize = RamSize.Eight;
  		DiskSize diskSize = DiskSize.Ten;
  		Region region = service.getRegion();
- 		String javaInstallationScript = "C:\\Users\\D066624\\Google Drive\\Rough\\Eclipse\\ProvisionHybris\\src\\main\\resources\\install_java.sh";
-  		String hybrisInstallationScript = "C:\\Users\\D066624\\Google Drive\\Rough\\Eclipse\\ProvisionHybris\\src\\main\\resources\\install_hybris.sh";
- 		
+ 		String downloadScripts = "C:\\Users\\D066624\\Google Drive\\Rough\\Eclipse\\ProvisionHybris\\src\\main\\resources\\download_scripts.sh";
+ 		/*String javaInstallationScript = "C:\\Users\\D066624\\Google Drive\\Rough\\Eclipse\\ProvisionHybris\\src\\main\\resources\\install_java.sh";
+  		String hybrisInstallationScript = "C:\\Users\\D066624\\Google Drive\\Rough\\Eclipse\\ProvisionHybris\\src\\main\\resources\\install_hybris.sh";*/
+ 		 		
   		// Create Node or Instance
-  		service.createNode(computeService, os, cpu, service.getRamSize(ramSize), diskSize, 
+ 		service.createNode(computeService, os, cpu, service.getRamSize(ramSize), diskSize, 
 							region, groupName, keyName, service.getKeyToSsh());
-		
-		// Execute shell command on created instance.
-/* 		System.out.println(">> Command execution Begins!");
-		service.executeCommand(computeService, groupName, "sudo su");
-		System.out.println("<< Command execution Completed!");*/
+  		System.out.println("---------------------------------------------------------------------------");
   		
+  		// Download scripts for provisioning
+  		service.executeScript(computeService, groupName, downloadScripts);
   		
-  		// Install Java on created instance
+  		System.out.println("---------------------------------------------------------------------------");
   		System.out.println(">> Java Installation Begins!");
-		service.executeScript(computeService, groupName, javaInstallationScript);
-		System.out.println("<< Java Installation Completed!");
-		
-		// Install Hybris on created instance
-		System.out.println(">> Hybris Installation Begins!");
-		service.executeScript(computeService, groupName, hybrisInstallationScript);
-		System.out.println("<< Hybris Installation Completed!");
+  		service.executeCommand(computeService, groupName, "sudo /opt/scripts/install_java.sh " + hostName);
+  		System.out.println("<< Java Installation Completed!");
+  		
+  		System.out.println("---------------------------------------------------------------------------");
+  		HybrisVersion selectedHybrisVersion = HybrisVersion.Hybris6_3_0;
+  		String hybrisVersion = selectedHybrisVersion.getHybrisVersion();
+  		String hybrisPackage = selectedHybrisVersion.getHybrisPackage();
+  		System.out.println(">> " + hybrisVersion + " is selected!");
+  		
+  		HybrisRecipe selectedHybrisRecipe = HybrisRecipe.B2C_Accelerator;
+  		String acceleratorType = selectedHybrisRecipe.getRecipeId();
+  		System.out.println(">> Hybris " + selectedHybrisRecipe + " is selected!");
+  		
+  		System.out.println("---------------------------------------------------------------------------");
+  		System.out.println(">> Hybris Installation Begins!");
+  		service.executeCommand(computeService, groupName, "sudo /opt/scripts/install_hybris.sh "+ 
+  																			hybrisVersion + " " + hybrisPackage + " " + acceleratorType);
+  		System.out.println("<< Hybris Installation Completed!");
+  		
 		
 		// Closing the compute service
+		System.out.println(service.awsCreateSecurityGroup(computeService, region, groupName));
 		computeService.getContext().close();
+		System.out.println("---------------------------------------------------------------------------");
+		long timeEnd = System.currentTimeMillis();
+		long duration = timeEnd - timeStart;
+		long minutes = TimeUnit.MILLISECONDS.toMinutes(duration);
+		System.out.println("Provision of Hybris on " + service.getProvider() + "  took " + minutes + " minutes.");
 		
 		/* ******************************************
 		 *		Listing machine types in GCP		*

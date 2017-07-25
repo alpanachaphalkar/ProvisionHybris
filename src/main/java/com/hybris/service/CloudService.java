@@ -5,11 +5,14 @@ import static com.google.common.base.Charsets.UTF_8;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 
 import org.jclouds.ContextBuilder;
 import org.jclouds.aws.ec2.AWSEC2Api;
 import org.jclouds.aws.ec2.compute.AWSEC2TemplateOptions;
 import org.jclouds.aws.ec2.features.AWSKeyPairApi;
+import org.jclouds.aws.ec2.features.AWSSecurityGroupApi;
+import org.jclouds.aws.ec2.options.CreateSecurityGroupOptions;
 import org.jclouds.compute.ComputeService;
 import org.jclouds.compute.ComputeServiceContext;
 import org.jclouds.compute.RunScriptOnNodesException;
@@ -22,10 +25,14 @@ import org.jclouds.compute.options.TemplateOptions;
 import org.jclouds.compute.predicates.NodePredicates;
 import org.jclouds.domain.LoginCredentials;
 import org.jclouds.ec2.domain.KeyPair;
+import org.jclouds.ec2.domain.SecurityGroup;
 import org.jclouds.enterprise.config.EnterpriseConfigurationModule;
+import org.jclouds.googlecomputeengine.GoogleComputeEngineApi;
 import org.jclouds.googlecomputeengine.compute.options.GoogleComputeEngineTemplateOptions;
+import org.jclouds.googlecomputeengine.features.FirewallApi;
 import org.jclouds.logging.slf4j.config.SLF4JLoggingModule;
-import org.jclouds.scriptbuilder.domain.Statement;
+import org.jclouds.net.domain.IpPermission;
+import org.jclouds.net.domain.IpProtocol;
 import org.jclouds.scriptbuilder.domain.Statements;
 import org.jclouds.sshj.config.SshjSshClientModule;
 
@@ -145,6 +152,33 @@ public class CloudService implements CloudServiceAction{
 		return region;
 	}
 	
+	public String awsCreateSecurityGroup(ComputeService computeService, Region region, String groupName) throws IOException{
+		
+		String securityGroupName = "security-group-" + groupName;
+		/*ImmutableSet.Builder<IpPermission> inboundRules = ImmutableSet.builder();
+		IpPermission sshRule = IpPermission.builder().ipProtocol(IpProtocol.TCP).fromPort(22).toPort(22).cidrBlock("0.0.0.0/0").build();
+		IpPermission tcpRule = IpPermission.builder().ipProtocol(IpProtocol.TCP).fromPort(0).toPort(65535).cidrBlock("0.0.0.0/0").build();
+		
+		inboundRules.add(tcpRule);
+		inboundRules.add(sshRule);*/
+		
+		AWSSecurityGroupApi securityGroupApi = computeService.getContext().unwrapApi(AWSEC2Api.class).getSecurityGroupApiForRegion(region.getID()).get();
+		
+		/*String securityGroupId = securityGroupApi.createSecurityGroupInRegionAndReturnId(region.getID(), securityGroupName, 
+																						 securityGroupName, securityGrpOptions);*/
+		securityGroupApi.createSecurityGroupInRegion(region.getID(), securityGroupName, securityGroupName);
+		securityGroupApi.authorizeSecurityGroupIngressInRegion(region.getID(), securityGroupName, IpProtocol.TCP, 22, 22, "0.0.0.0/0");
+		securityGroupApi.authorizeSecurityGroupIngressInRegion(region.getID(), securityGroupName, IpProtocol.TCP, 0, 65535, "0.0.0.0/0");
+		Set<SecurityGroup> securityGroups = securityGroupApi.describeSecurityGroupsInRegion(region.getID(), securityGroupName);
+		String securityGroupId = "";
+		for (SecurityGroup securityGroup : securityGroups) {
+			securityGroupId = securityGroup.getId();
+		}
+		TemplateBuilder templateBuilder = computeService.templateBuilder().options(TemplateOptions.Builder.securityGroups(securityGroupName));
+		templateBuilder.build();
+		return securityGroupId;
+	}
+	
 	public void createNode(ComputeService computeService, OsFamily os, Cpu cpu, int ramSize, DiskSize disk,
 							Region region, String groupName, String keyName, String pathToKey) {
 		// TODO Auto-generated method stub
@@ -163,10 +197,7 @@ public class CloudService implements CloudServiceAction{
 														.locationId(region.getID());
 			Template template = templateBuilder.build();
 			TemplateOptions templateOptions = template.getOptions();
-			
-			// Note this will create a user with the same name as you on the node. ex. you can connect via ssh publicip.
-/*			Statement bootInstructions = AdminAccess.standard();
-			templateBuilder.options(templateOptions.runScript(bootInstructions));*/
+			//int ports[] = {9001, 9002, 8983, 22, 80, 443};
 			
 			switch (this.provider) {
 			
@@ -174,29 +205,25 @@ public class CloudService implements CloudServiceAction{
 				
 				templateOptions.as(AWSEC2TemplateOptions.class).userMetadata("Name", groupName);
 				
+				// Create and Authorize security group
+				
 				String AwsPublicKey = Files.toString(new File(pathToKey + ".pub"), UTF_8);
 				//String AwsPrivateKey = Files.toString(new File(pathToKey), UTF_8);
 				AWSKeyPairApi keyPairApi = computeService.getContext().unwrapApi(AWSEC2Api.class).getKeyPairApiForRegion(region.getID()).get();
 				KeyPair keyPair = keyPairApi.importKeyPairInRegion(region.getID(), keyName, AwsPublicKey);
-				
 				//Use existing key pair in aws by key pair name
 				//templateOptions.as(AWSEC2TemplateOptions.class).keyPair(keyPairName);
+				
+				//templateOptions.overrideLoginPrivateKey(AwsPrivateKey);
 				
 				// Imports local ssh key to the node
 				System.out.printf(">> Importing public key %s%n", keyName);
 				System.out.println();
 				templateOptions.as(AWSEC2TemplateOptions.class).keyPair(keyPair.getKeyName());
-				int ports[] = {9001, 9002, 8983, 22, 80, 443};
-				templateOptions.as(AWSEC2TemplateOptions.class).inboundPorts(ports);
-				//templateOptions.overrideLoginPrivateKey(AwsPrivateKey);
 				
 				break;
 			
 			case GoogleCloudProvider:
-				
-				//String GcpPublicKey = Files.toString(new File(pathToKey), UTF_8);
-				// Blocks project-wide SSH keys
-				//GcpTemplateOptions.as(GoogleComputeEngineTemplateOptions.class).userMetadata("sshKeys", GcpPublicKey); 
 				
 				// To use project-wide SSH keys
 				templateOptions.as(GoogleComputeEngineTemplateOptions.class).autoCreateKeyPair(false);
@@ -207,6 +234,7 @@ public class CloudService implements CloudServiceAction{
 				System.out.printf(">> Importing public key %s%n", keyName);
 				System.out.println();
 				templateOptions.as(GoogleComputeEngineTemplateOptions.class).userMetadata("ssh-keys", GcpPublicKey);
+				//FirewallApi firewallApi = computeService.getContext().unwrapApi(GoogleComputeEngineApi.class).firewalls();
 				
 				break;
 				
@@ -217,7 +245,6 @@ public class CloudService implements CloudServiceAction{
 			
 			System.out.println("<< node: " + node.getName() + "  with ID: " + node.getId() + "  with Private IP: " + node.getPrivateAddresses()
 			+ "  and Public IP: " + node.getPublicAddresses() + "  is created.");
-			
 			
 		} catch (Exception e) {
 			// TODO: handle exception
