@@ -20,7 +20,9 @@ BASHRC_FILE_PATH="/etc/bash.bashrc"
 BASH_PROFILE_FILE_PATH="/etc/profile"
 BASH_PROFILE_JAVA_HOME_SCRIPT="/etc/profile.d/java.sh"
 HOSTS_FILE_PATH="/etc/hosts"
+CUSTOM_HOSTNAME="hybris-demo-app-002.hybrishosting.com"
 
+hostname -b $CUSTOM_HOSTNAME
 echo "127.0.0.1 ${HOSTNAME}" >>$HOSTS_FILE_PATH
 mkdir -p $PACKAGES_DIR
 cd $PACKAGES_DIR
