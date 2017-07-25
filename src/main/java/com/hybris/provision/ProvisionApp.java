@@ -23,20 +23,23 @@ public class ProvisionApp {
 		/* ******************************************
 		 *		AWS Provider Compute Service		*
 		 * ******************************************/		
- 		
+		CloudService service = new CloudService(Provider.AmazonWebService);
+		
  		// Create Node or Instance
 /*		service.createNode(computeService, OsFamily.UBUNTU, Cpu.Two64bit, RamSize.Aws_Eight, DiskSize.Ten, 
 							Region.AWS_UsEast1, groupName, keyName, "C:\\cygwin64\\home\\D066624\\.ssh\\id_rsa");*/
 
+		
+		
 		/* ******************************************
 		 *		GCP Provider Compute Service		*
 		 * ******************************************/
-		CloudService service = new CloudService(Provider.GoogleCloudProvider);
-  		ComputeService computeService = service.initComputeService();
-  		
-  		
+		/*CloudService service = new CloudService(Provider.GoogleCloudProvider);*/
+		
+				
   		// Compute Service Specifications
-  		String groupName = "java-hybris-try-019";
+		ComputeService computeService = service.initComputeService();
+  		String groupName = "hybris-demo-app-002";
  		String keyName = groupName;
  		OsFamily os = OsFamily.UBUNTU;
  		Cpu cpu = Cpu.Two64bit;

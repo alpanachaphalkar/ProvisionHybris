@@ -186,6 +186,8 @@ public class CloudService implements CloudServiceAction{
 				System.out.printf(">> Importing public key %s%n", keyName);
 				System.out.println();
 				templateOptions.as(AWSEC2TemplateOptions.class).keyPair(keyPair.getKeyName());
+				int ports[] = {9001, 9002, 8983, 22, 80, 443};
+				templateOptions.as(AWSEC2TemplateOptions.class).inboundPorts(ports);
 				//templateOptions.overrideLoginPrivateKey(AwsPrivateKey);
 				
 				break;
@@ -198,6 +200,7 @@ public class CloudService implements CloudServiceAction{
 				
 				// To use project-wide SSH keys
 				templateOptions.as(GoogleComputeEngineTemplateOptions.class).autoCreateKeyPair(false);
+				templateOptions.as(GoogleComputeEngineTemplateOptions.class).securityGroups("hybris-demo-app-firewall");
 				
 				// Imports local ssh keys to node
 				String GcpPublicKey = Files.toString(new File(pathToKey), UTF_8);
