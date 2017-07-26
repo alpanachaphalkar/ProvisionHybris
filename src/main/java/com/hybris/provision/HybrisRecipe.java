@@ -2,7 +2,8 @@ package com.hybris.provision;
 
 public enum HybrisRecipe {
 
-	B2B_Accelerator("b2b_acc", ":9001/yb2bacceleratorstorefront/?site=powertools"), B2C_Accelerator("b2c_acc", "Electronics");
+	B2B_Accelerator("b2b_acc", ":9001/yb2bacceleratorstorefront/?site=powertools"), 
+	B2C_Accelerator("b2c_acc", ":9001/yacceleratorstorefront/?site=electronics");
 	
 	private String recipeId;
 	private String defaultRecipeShopUrl;

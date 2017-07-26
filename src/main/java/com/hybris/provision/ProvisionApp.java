@@ -26,23 +26,18 @@ public class ProvisionApp {
 		 *		AWS Provider Compute Service		*
 		 * ******************************************/	
 		long timeStart = System.currentTimeMillis();
-		CloudService service = new CloudService(Provider.AmazonWebService);
-		
- 		// Create Node or Instance
-/*		service.createNode(computeService, OsFamily.UBUNTU, Cpu.Two64bit, RamSize.Aws_Eight, DiskSize.Ten, 
-							Region.AWS_UsEast1, groupName, keyName, "C:\\cygwin64\\home\\D066624\\.ssh\\id_rsa");*/
-
+		/*CloudService service = new CloudService(Provider.AmazonWebService);*/
 		
 		
 		/* ******************************************
 		 *		GCP Provider Compute Service		*
 		 * ******************************************/
-		/*CloudService service = new CloudService(Provider.GoogleCloudProvider);*/
+		CloudService service = new CloudService(Provider.GoogleCloudProvider);
 		
 				
   		// Compute Service Specifications
 		ComputeService computeService = service.initComputeService();
-		String groupName = "hybris-demo-app-017";
+		String groupName = "hybris-demo-app-024";
 		String hostName = groupName + ".hybrishosting.com";
  		String keyName = groupName;
  		OsFamily os = OsFamily.UBUNTU;
@@ -51,20 +46,18 @@ public class ProvisionApp {
  		DiskSize diskSize = DiskSize.Ten;
  		Region region = service.getRegion();
  		String downloadScripts = "C:\\Users\\D066624\\Google Drive\\Rough\\Eclipse\\ProvisionHybris\\src\\main\\resources\\download_scripts.sh";
- 		/*String javaInstallationScript = "C:\\Users\\D066624\\Google Drive\\Rough\\Eclipse\\ProvisionHybris\\src\\main\\resources\\install_java.sh";
-  		String hybrisInstallationScript = "C:\\Users\\D066624\\Google Drive\\Rough\\Eclipse\\ProvisionHybris\\src\\main\\resources\\install_hybris.sh";*/
  		 		
   		// Create Node or Instance
- 		service.createNode(computeService, os, cpu, service.getRamSize(ramSize), diskSize, 
+ 		String nodeId = service.createNode(computeService, os, cpu, service.getRamSize(ramSize), diskSize, 
 							region, groupName, keyName, service.getKeyToSsh());
   		System.out.println("---------------------------------------------------------------------------");
   		
   		// Download scripts for provisioning
-  		service.executeScript(computeService, groupName, downloadScripts);
+  		service.executeScript(computeService, nodeId, downloadScripts);
   		
   		System.out.println("---------------------------------------------------------------------------");
   		System.out.println(">> Java Installation Begins!");
-  		service.executeCommand(computeService, groupName, "sudo /opt/scripts/install_java.sh " + hostName);
+  		service.executeCommand(computeService, nodeId, "sudo /opt/scripts/install_java.sh " + hostName);
   		System.out.println("<< Java Installation Completed!");
   		
   		System.out.println("---------------------------------------------------------------------------");
@@ -79,13 +72,12 @@ public class ProvisionApp {
   		
   		System.out.println("---------------------------------------------------------------------------");
   		System.out.println(">> Hybris Installation Begins!");
-  		service.executeCommand(computeService, groupName, "sudo /opt/scripts/install_hybris.sh "+ 
+  		service.executeCommand(computeService, nodeId, "sudo /opt/scripts/install_hybris.sh "+ 
   																			hybrisVersion + " " + hybrisPackage + " " + acceleratorType);
   		System.out.println("<< Hybris Installation Completed!");
   		
 		
 		// Closing the compute service
-		System.out.println(service.awsCreateSecurityGroup(computeService, region, groupName));
 		computeService.getContext().close();
 		System.out.println("---------------------------------------------------------------------------");
 		long timeEnd = System.currentTimeMillis();

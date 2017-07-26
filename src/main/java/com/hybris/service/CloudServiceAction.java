@@ -8,10 +8,10 @@ import com.hybris.provider.specifications.*;
 public interface CloudServiceAction {
 	
 	// creates node or an instance based on gropuname
-	void createNode(ComputeService computeService, OsFamily os, Cpu cpu, int ramSize, DiskSize diskSize,
+	String createNode(ComputeService computeService, OsFamily os, Cpu cpu, int ramSize, DiskSize diskSize,
 					Region region, String groupName, String keyName, String pathToKey);
 	
-	void executeCommand(ComputeService computeService, String groupName, String command);
+	void executeCommand(ComputeService computeService, String nodeId, String command);
 	
-	void executeScript(ComputeService computeService, String groupName, String pathToScript);
+	void executeScript(ComputeService computeService, String nodeId, String pathToScript);
 }

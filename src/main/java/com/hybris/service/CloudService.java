@@ -4,6 +4,9 @@ import static com.google.common.base.Charsets.UTF_8;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -12,6 +15,7 @@ import org.jclouds.aws.ec2.AWSEC2Api;
 import org.jclouds.aws.ec2.compute.AWSEC2TemplateOptions;
 import org.jclouds.aws.ec2.features.AWSKeyPairApi;
 import org.jclouds.aws.ec2.features.AWSSecurityGroupApi;
+import org.jclouds.aws.ec2.options.AWSRunInstancesOptions;
 import org.jclouds.aws.ec2.options.CreateSecurityGroupOptions;
 import org.jclouds.compute.ComputeService;
 import org.jclouds.compute.ComputeServiceContext;
@@ -21,18 +25,28 @@ import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.domain.OsFamily;
 import org.jclouds.compute.domain.Template;
 import org.jclouds.compute.domain.TemplateBuilder;
+import org.jclouds.compute.options.RunScriptOptions;
 import org.jclouds.compute.options.TemplateOptions;
 import org.jclouds.compute.predicates.NodePredicates;
+import org.jclouds.compute.reference.ComputeServiceConstants;
 import org.jclouds.domain.LoginCredentials;
 import org.jclouds.ec2.domain.KeyPair;
 import org.jclouds.ec2.domain.SecurityGroup;
+import org.jclouds.ec2.options.RunInstancesOptions;
 import org.jclouds.enterprise.config.EnterpriseConfigurationModule;
+import org.jclouds.googlecloud.config.GoogleCloudProperties;
 import org.jclouds.googlecomputeengine.GoogleComputeEngineApi;
+import org.jclouds.googlecomputeengine.GoogleComputeEngineApiMetadata;
+import org.jclouds.googlecomputeengine.compute.functions.FirewallTagNamingConvention;
 import org.jclouds.googlecomputeengine.compute.options.GoogleComputeEngineTemplateOptions;
+import org.jclouds.googlecomputeengine.domain.Firewall;
+import org.jclouds.googlecomputeengine.domain.Firewall.Rule;
 import org.jclouds.googlecomputeengine.features.FirewallApi;
+import org.jclouds.googlecomputeengine.options.FirewallOptions;
 import org.jclouds.logging.slf4j.config.SLF4JLoggingModule;
 import org.jclouds.net.domain.IpPermission;
 import org.jclouds.net.domain.IpProtocol;
+import org.jclouds.profitbricks.compute.config.ProfitBricksComputeServiceContextModule.ComputeConstants;
 import org.jclouds.scriptbuilder.domain.Statements;
 import org.jclouds.sshj.config.SshjSshClientModule;
 
@@ -155,12 +169,6 @@ public class CloudService implements CloudServiceAction{
 	public String awsCreateSecurityGroup(ComputeService computeService, Region region, String groupName) throws IOException{
 		
 		String securityGroupName = "security-group-" + groupName;
-		/*ImmutableSet.Builder<IpPermission> inboundRules = ImmutableSet.builder();
-		IpPermission sshRule = IpPermission.builder().ipProtocol(IpProtocol.TCP).fromPort(22).toPort(22).cidrBlock("0.0.0.0/0").build();
-		IpPermission tcpRule = IpPermission.builder().ipProtocol(IpProtocol.TCP).fromPort(0).toPort(65535).cidrBlock("0.0.0.0/0").build();
-		
-		inboundRules.add(tcpRule);
-		inboundRules.add(sshRule);*/
 		
 		AWSSecurityGroupApi securityGroupApi = computeService.getContext().unwrapApi(AWSEC2Api.class).getSecurityGroupApiForRegion(region.getID()).get();
 		
@@ -174,12 +182,12 @@ public class CloudService implements CloudServiceAction{
 		for (SecurityGroup securityGroup : securityGroups) {
 			securityGroupId = securityGroup.getId();
 		}
-		TemplateBuilder templateBuilder = computeService.templateBuilder().options(TemplateOptions.Builder.securityGroups(securityGroupName));
-		templateBuilder.build();
+		/*TemplateBuilder templateBuilder = computeService.templateBuilder().options(TemplateOptions.Builder.securityGroups(securityGroupName));
+		templateBuilder.build();*/
 		return securityGroupId;
 	}
 	
-	public void createNode(ComputeService computeService, OsFamily os, Cpu cpu, int ramSize, DiskSize disk,
+	public String createNode(ComputeService computeService, OsFamily os, Cpu cpu, int ramSize, DiskSize disk,
 							Region region, String groupName, String keyName, String pathToKey) {
 		// TODO Auto-generated method stub
 		
@@ -197,7 +205,7 @@ public class CloudService implements CloudServiceAction{
 														.locationId(region.getID());
 			Template template = templateBuilder.build();
 			TemplateOptions templateOptions = template.getOptions();
-			//int ports[] = {9001, 9002, 8983, 22, 80, 443};
+			
 			
 			switch (this.provider) {
 			
@@ -220,6 +228,9 @@ public class CloudService implements CloudServiceAction{
 				System.out.printf(">> Importing public key %s%n", keyName);
 				System.out.println();
 				templateOptions.as(AWSEC2TemplateOptions.class).keyPair(keyPair.getKeyName());
+				templateOptions.as(AWSEC2TemplateOptions.class).securityGroupIds("sg-db2a18aa");
+				//AWSRunInstancesOptions instanceOptions = new AWSRunInstancesOptions();
+				//instanceOptions.withSecurityGroupId("sg-db2a18aa");
 				
 				break;
 			
@@ -227,14 +238,19 @@ public class CloudService implements CloudServiceAction{
 				
 				// To use project-wide SSH keys
 				templateOptions.as(GoogleComputeEngineTemplateOptions.class).autoCreateKeyPair(false);
-				templateOptions.as(GoogleComputeEngineTemplateOptions.class).securityGroups("hybris-demo-app-firewall");
 				
 				// Imports local ssh keys to node
 				String GcpPublicKey = Files.toString(new File(pathToKey), UTF_8);
 				System.out.printf(">> Importing public key %s%n", keyName);
 				System.out.println();
 				templateOptions.as(GoogleComputeEngineTemplateOptions.class).userMetadata("ssh-keys", GcpPublicKey);
-				//FirewallApi firewallApi = computeService.getContext().unwrapApi(GoogleComputeEngineApi.class).firewalls();
+				//rewallApi firewallApi = computeService.getContext().unwrapApi(GoogleComputeEngineApi.class).firewalls();
+				ArrayList<String> tags = new ArrayList<String>();
+				tags.add("hybris-demo-app-firewall");
+				templateOptions.as(GoogleComputeEngineTemplateOptions.class).tags(tags);
+				//int ports[] = {9001, 9002, 8983, 22, 80, 443};
+				
+				//templateOptions.as(GoogleComputeEngineTemplateOptions.class).inboundPorts(ports);
 				
 				break;
 				
@@ -246,42 +262,52 @@ public class CloudService implements CloudServiceAction{
 			System.out.println("<< node: " + node.getName() + "  with ID: " + node.getId() + "  with Private IP: " + node.getPrivateAddresses()
 			+ "  and Public IP: " + node.getPublicAddresses() + "  is created.");
 			
+			return node.getId();
+			
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
+			return null;
 		}
 		
 		
 	}
 
-	public void executeCommand(ComputeService computeService, String groupName, String command) {
+	public void executeCommand(ComputeService computeService, String nodeId, String command) {
 		// TODO Auto-generated method stub
 		LoginCredentials login = getLoginForProvision();
 	    
-	    try {
-	      Map<? extends NodeMetadata, ExecResponse> responses = 
-	        computeService.runScriptOnNodesMatching(NodePredicates.inGroup(groupName), 
-	        Statements.exec(command), 
-	        TemplateOptions.Builder.runScript(command).overrideLoginCredentials(login));
+		//execute command in groups
+		   /*try {
+		     Map<? extends NodeMetadata, ExecResponse> responses = 
+		    		  computeService.runScriptOnNodesMatching(NodePredicates.inGroup(groupName), 
+		    				  Statements.exec(command), 
+		    				  TemplateOptions.Builder.runScript(command).overrideLoginCredentials(login));
+		    	
+		    	for (Map.Entry<? extends NodeMetadata, ExecResponse> response : responses.entrySet()) {
+			        System.out.printf("<< node %s: %s%n", response.getKey().getId(), 
+			          Iterables.concat(response.getKey().getPrivateAddresses(), response.getKey().getPublicAddresses()));
+			        System.out.printf("<<     %s%n", response.getValue());
+			    }
+		    
+		    }
+		    catch (RunScriptOnNodesException e) {
+		      e.printStackTrace();
+		    }*/
+		
+	      ExecResponse responses = computeService.runScriptOnNode(nodeId, Statements.exec(command), 
+	    		  												TemplateOptions.Builder.runScript(command).overrideLoginCredentials(login));
+	      System.out.println(responses.getOutput());
 	      
-	      for (Map.Entry<? extends NodeMetadata, ExecResponse> response : responses.entrySet()) {
-	        System.out.printf("<< node %s: %s%n", response.getKey().getId(), 
-	          Iterables.concat(response.getKey().getPrivateAddresses(), response.getKey().getPublicAddresses()));
-	        System.out.printf("<<     %s%n", response.getValue());
-	      }
-	    }
-	    catch (RunScriptOnNodesException e) {
-	      e.printStackTrace();
-	    }
 	}
 
-	public void executeScript(ComputeService computeService, String groupName, String pathToScript) {
+	public void executeScript(ComputeService computeService, String nodeId, String pathToScript) {
 		// TODO Auto-generated method stub
 		
 		File script = new File(pathToScript);
 	    LoginCredentials login = getLoginForProvision();
 	    
-	    try {
+	    /*try {
 		      Map<? extends NodeMetadata, ExecResponse> responses = 
 		      computeService.runScriptOnNodesMatching(NodePredicates.inGroup(groupName), 
 		      Files.toString(script, Charsets.UTF_8), 
@@ -298,7 +324,19 @@ public class CloudService implements CloudServiceAction{
 	    }
 	    catch (IOException e) {
 	      e.printStackTrace();
-	    }
+	    }*/
+	    
+	    try {
+			ExecResponse responses = computeService.runScriptOnNode(nodeId, Files.toString(script, Charsets.UTF_8), 
+										TemplateOptions.Builder.runScript(Files.toString(script, Charsets.UTF_8)).overrideLoginCredentials(login));
+			
+			System.out.println(responses.getOutput());
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	    
 	}
 	
 	
