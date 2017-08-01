@@ -166,27 +166,6 @@ public class CloudService implements CloudServiceAction{
 		return region;
 	}
 	
-	public String awsCreateSecurityGroup(ComputeService computeService, Region region, String groupName) throws IOException{
-		
-		String securityGroupName = "security-group-" + groupName;
-		
-		AWSSecurityGroupApi securityGroupApi = computeService.getContext().unwrapApi(AWSEC2Api.class).getSecurityGroupApiForRegion(region.getID()).get();
-		
-		/*String securityGroupId = securityGroupApi.createSecurityGroupInRegionAndReturnId(region.getID(), securityGroupName, 
-																						 securityGroupName, securityGrpOptions);*/
-		securityGroupApi.createSecurityGroupInRegion(region.getID(), securityGroupName, securityGroupName);
-		securityGroupApi.authorizeSecurityGroupIngressInRegion(region.getID(), securityGroupName, IpProtocol.TCP, 22, 22, "0.0.0.0/0");
-		securityGroupApi.authorizeSecurityGroupIngressInRegion(region.getID(), securityGroupName, IpProtocol.TCP, 0, 65535, "0.0.0.0/0");
-		Set<SecurityGroup> securityGroups = securityGroupApi.describeSecurityGroupsInRegion(region.getID(), securityGroupName);
-		String securityGroupId = "";
-		for (SecurityGroup securityGroup : securityGroups) {
-			securityGroupId = securityGroup.getId();
-		}
-		/*TemplateBuilder templateBuilder = computeService.templateBuilder().options(TemplateOptions.Builder.securityGroups(securityGroupName));
-		templateBuilder.build();*/
-		return securityGroupId;
-	}
-	
 	public String createNode(ComputeService computeService, OsFamily os, Cpu cpu, int ramSize, DiskSize disk,
 							Region region, String groupName, String keyName, String pathToKey) {
 		// TODO Auto-generated method stub
@@ -215,22 +194,23 @@ public class CloudService implements CloudServiceAction{
 				
 				// Create and Authorize security group
 				
+/*				// Create new KeyPair 
 				String AwsPublicKey = Files.toString(new File(pathToKey + ".pub"), UTF_8);
-				//String AwsPrivateKey = Files.toString(new File(pathToKey), UTF_8);
 				AWSKeyPairApi keyPairApi = computeService.getContext().unwrapApi(AWSEC2Api.class).getKeyPairApiForRegion(region.getID()).get();
 				KeyPair keyPair = keyPairApi.importKeyPairInRegion(region.getID(), keyName, AwsPublicKey);
-				//Use existing key pair in aws by key pair name
-				//templateOptions.as(AWSEC2TemplateOptions.class).keyPair(keyPairName);
+				// Imports new KeyPair to the node
+				System.out.printf(">> Importing public key %s%n", keyName);
+				System.out.println();
+				templateOptions.as(AWSEC2TemplateOptions.class).keyPair(keyPair.getKeyName());*/
 				
 				//templateOptions.overrideLoginPrivateKey(AwsPrivateKey);
 				
-				// Imports local ssh key to the node
+				//Use existing key pair in aws by key pair name
+				//String keyName = "alpanachaphalkar";
 				System.out.printf(">> Importing public key %s%n", keyName);
 				System.out.println();
-				templateOptions.as(AWSEC2TemplateOptions.class).keyPair(keyPair.getKeyName());
+				templateOptions.as(AWSEC2TemplateOptions.class).keyPair(keyName);
 				templateOptions.as(AWSEC2TemplateOptions.class).securityGroupIds("sg-db2a18aa");
-				//AWSRunInstancesOptions instanceOptions = new AWSRunInstancesOptions();
-				//instanceOptions.withSecurityGroupId("sg-db2a18aa");
 				
 				break;
 			
@@ -248,9 +228,6 @@ public class CloudService implements CloudServiceAction{
 				ArrayList<String> tags = new ArrayList<String>();
 				tags.add("hybris-demo-app-firewall");
 				templateOptions.as(GoogleComputeEngineTemplateOptions.class).tags(tags);
-				//int ports[] = {9001, 9002, 8983, 22, 80, 443};
-				
-				//templateOptions.as(GoogleComputeEngineTemplateOptions.class).inboundPorts(ports);
 				
 				break;
 				
@@ -297,6 +274,8 @@ public class CloudService implements CloudServiceAction{
 		
 	      ExecResponse responses = computeService.runScriptOnNode(nodeId, Statements.exec(command), 
 	    		  												TemplateOptions.Builder.runScript(command).overrideLoginCredentials(login));
+			/*ExecResponse responses = computeService.runScriptOnNode(nodeId, Statements.exec(command), 
+					TemplateOptions.Builder.runScript(command));*/
 	      System.out.println(responses.getOutput());
 	      
 	}
@@ -329,7 +308,8 @@ public class CloudService implements CloudServiceAction{
 	    try {
 			ExecResponse responses = computeService.runScriptOnNode(nodeId, Files.toString(script, Charsets.UTF_8), 
 										TemplateOptions.Builder.runScript(Files.toString(script, Charsets.UTF_8)).overrideLoginCredentials(login));
-			
+	    	/*ExecResponse responses = computeService.runScriptOnNode(nodeId, Files.toString(script, Charsets.UTF_8), 
+					TemplateOptions.Builder.runScript(Files.toString(script, Charsets.UTF_8)));*/
 			System.out.println(responses.getOutput());
 			
 		} catch (IOException e) {

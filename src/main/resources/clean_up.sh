@@ -1,0 +1,10 @@
+#!/bin/bash
+
+SCRIPTS_DIR="/opt/scripts"
+USERNAME="hybris"
+USERGROUP="hybris"
+HYBRIS_HOME=$HYBRIS_HOME
+
+rm -r $SCRIPTS_DIR
+chmod -R 775 $HYBRIS_HOME
+chown -R $USERNAME:$USERGROUP $HYBRIS_HOME

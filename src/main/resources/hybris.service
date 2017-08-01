@@ -1,0 +1,15 @@
+[Unit]
+Description=hybris
+After=network.target
+
+[Service]
+WorkingDirectory=/opt/Hybris-6.3.0/hybris/bin/platform/
+Type=oneshot
+ExecStart=/opt/Hybris-6.3.0/hybris/bin/platform/hybrisserver.sh start
+ExecStop=/opt/Hybris-6.3.0/hybris/bin/platform/hybrisserver.sh stop
+RemainAfterExit=yes
+User=hybris
+Group=hybris
+
+[Install]
+WantedBy=multi-user.target

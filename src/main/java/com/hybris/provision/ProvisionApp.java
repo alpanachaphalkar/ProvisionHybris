@@ -37,15 +37,16 @@ public class ProvisionApp {
 				
   		// Compute Service Specifications
 		ComputeService computeService = service.initComputeService();
-		String groupName = "hybris-demo-app-024";
+		String groupName = "hybris-demo-app-012";
 		String hostName = groupName + ".hybrishosting.com";
- 		String keyName = groupName;
+ 		String keyName = "alpanachaphalkar";
  		OsFamily os = OsFamily.UBUNTU;
  		Cpu cpu = Cpu.Two64bit;
  		RamSize ramSize = RamSize.Eight;
  		DiskSize diskSize = DiskSize.Ten;
  		Region region = service.getRegion();
  		String downloadScripts = "C:\\Users\\D066624\\Google Drive\\Rough\\Eclipse\\ProvisionHybris\\src\\main\\resources\\download_scripts.sh";
+ 		String cleanUpScript="C:\\Users\\D066624\\Google Drive\\Rough\\Eclipse\\ProvisionHybris\\src\\main\\resources\\clean_up.sh";
  		 		
   		// Create Node or Instance
  		String nodeId = service.createNode(computeService, os, cpu, service.getRamSize(ramSize), diskSize, 
@@ -61,12 +62,12 @@ public class ProvisionApp {
   		System.out.println("<< Java Installation Completed!");
   		
   		System.out.println("---------------------------------------------------------------------------");
-  		HybrisVersion selectedHybrisVersion = HybrisVersion.Hybris6_3_0;
+  		HybrisVersion selectedHybrisVersion = HybrisVersion.Hybris6_2_0;
   		String hybrisVersion = selectedHybrisVersion.getHybrisVersion();
   		String hybrisPackage = selectedHybrisVersion.getHybrisPackage();
   		System.out.println(">> " + hybrisVersion + " is selected!");
   		
-  		HybrisRecipe selectedHybrisRecipe = HybrisRecipe.B2C_Accelerator;
+  		HybrisRecipe selectedHybrisRecipe = HybrisRecipe.B2B_Accelerator;
   		String acceleratorType = selectedHybrisRecipe.getRecipeId();
   		System.out.println(">> Hybris " + selectedHybrisRecipe + " is selected!");
   		
@@ -76,14 +77,18 @@ public class ProvisionApp {
   																			hybrisVersion + " " + hybrisPackage + " " + acceleratorType);
   		System.out.println("<< Hybris Installation Completed!");
   		
-		
+  		System.out.println("---------------------------------------------------------------------------");
+  		System.out.println(">> Cleaning Up");
+  		service.executeScript(computeService, nodeId, cleanUpScript);
+  		System.out.println("<< Cleaned Up");
+  		
 		// Closing the compute service
 		computeService.getContext().close();
 		System.out.println("---------------------------------------------------------------------------");
 		long timeEnd = System.currentTimeMillis();
 		long duration = timeEnd - timeStart;
 		long minutes = TimeUnit.MILLISECONDS.toMinutes(duration);
-		System.out.println("Provision of Hybris on " + service.getProvider() + "  took " + minutes + " minutes.");
+		System.out.println("Provision of Hybris on " + hostName + " of " + service.getProvider() + " took " + minutes + " minutes.");
 		
 		/* ******************************************
 		 *		Listing machine types in GCP		*
