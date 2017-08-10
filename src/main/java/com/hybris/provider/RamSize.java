@@ -15,5 +15,17 @@ public enum RamSize {
 		return this.size;
 	}
 	
+	public int getSize(Provider provider){
+		switch (provider) {
+		
+		case AmazonWebService:
+			return this.size;
+		case GoogleCloudProvider:
+			return this.size * 1024;
+
+		default:
+			return 0;
+		}
+	}
 	
 }

@@ -7,13 +7,19 @@ import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import org.jclouds.ContextBuilder;
 import org.jclouds.aws.ec2.reference.AWSEC2Constants;
+import org.jclouds.compute.ComputeService;
+import org.jclouds.compute.ComputeServiceContext;
 import org.jclouds.compute.config.ComputeServiceProperties;
 import org.jclouds.domain.Credentials;
 import org.jclouds.googlecloud.GoogleCredentialsFromJson;
+import org.jclouds.sshj.config.SshjSshClientModule;
 
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Files;
+import com.google.inject.Module;
 
 public enum Provider {
 	
@@ -37,6 +43,21 @@ public enum Provider {
 	
 	public String getCode(){
 		return this.providerCode;
+	}
+	
+	public ComputeService initComputeService() throws Exception{
+		
+		Iterable<Module> modules = ImmutableSet.<Module> of( new SshjSshClientModule());
+		
+		ContextBuilder builder = ContextBuilder.newBuilder(this.getApi())
+			.credentials(this.getIdentity(), this.getCredential())
+			.overrides(this.getOverrides())
+			.modules(modules);
+		
+		System.out.printf(">> initializing %s%n", builder.getApiMetadata());
+		ComputeServiceContext computeServiceContext = builder.buildView(ComputeServiceContext.class);
+		return computeServiceContext.getComputeService();
+		
 	}
 	
 	public Properties getOverrides(){

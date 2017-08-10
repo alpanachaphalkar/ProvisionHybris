@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.jclouds.compute.ComputeService;
 import org.jclouds.compute.domain.Hardware;
+import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.domain.OsFamily;
 import org.jclouds.domain.Location;
 import org.jclouds.scriptbuilder.ScriptBuilder;
@@ -23,13 +24,15 @@ import com.hybris.provider.Region;
  */
 public class ProvisionApp {
 	
-	public static void main( String[] args ) throws IOException{
+	public static void main( String[] args ) throws Exception{
  		
 		/* ******************************************
 		 *		AWS Provider Compute Service		*
 		 * ******************************************/	
 		long timeStart = System.currentTimeMillis();
-		CloudService service = new CloudService(Provider.AmazonWebService);
+		Provider provider = Provider.AmazonWebService;
+		ComputeService computeService = provider.initComputeService();
+		CloudService service = new CloudService(provider);
 		
 		
 		/* ******************************************
@@ -39,10 +42,9 @@ public class ProvisionApp {
 		
 				
   		// Compute Service Specifications
-		ComputeService computeService = service.initComputeService();
-		String groupName = "hybris-demo-srch-023";
-		String hostName = groupName + ".hybrishosting.com";
- 		String keyName = "alpanachaphalkar";
+		String host = "hybris-demo-srch-023";
+		String hostName = host + ".hybrishosting.com";
+ 		//String keyName = "alpanachaphalkar";
  		OsFamily os = OsFamily.UBUNTU;
  		Cpu cpu = Cpu.Two64bit;
  		RamSize ramSize = RamSize.Eight;
@@ -51,14 +53,14 @@ public class ProvisionApp {
  		String downloadScripts = "C:\\Users\\D066624\\Google Drive\\Rough\\Eclipse\\ProvisionHybris\\src\\main\\resources\\download_scripts.sh";
  		 		
   		// Create Node or Instance
- 		String nodeId = service.createNode(computeService, os, cpu, service.getRamSize(ramSize), diskSize, 
-							region, groupName, keyName, service.getKeyToSsh());
+ 		NodeMetadata node = service.createNode(computeService, os, cpu, ramSize.getSize(service.getProvider()), diskSize, 
+							region, host);
   		
   		// Download scripts for provisioning
   		System.out.println("---------------------------------------------------------------------------");
   		System.out.println(">> Set Hostname!");
-  		service.executeCommand(computeService, nodeId, "sudo hostnamectl set-hostname " + hostName);
-  		service.executeScript(computeService, nodeId, downloadScripts);
+  		service.executeCommand(computeService, node, "sudo hostnamectl set-hostname " + hostName);
+  		service.executeScript(computeService, node, downloadScripts);
   		System.out.println("<< Hostname is set!");
   		
   		/*System.out.println("---------------------------------------------------------------------------");
