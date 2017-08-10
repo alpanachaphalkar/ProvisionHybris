@@ -1,52 +1,24 @@
-package com.hybris.service;
+package com.hybris.computeservice;
 
 import static com.google.common.base.Charsets.UTF_8;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.jclouds.ContextBuilder;
-import org.jclouds.aws.ec2.AWSEC2Api;
 import org.jclouds.aws.ec2.compute.AWSEC2TemplateOptions;
-import org.jclouds.aws.ec2.features.AWSKeyPairApi;
-import org.jclouds.aws.ec2.features.AWSSecurityGroupApi;
-import org.jclouds.aws.ec2.options.AWSRunInstancesOptions;
-import org.jclouds.aws.ec2.options.CreateSecurityGroupOptions;
 import org.jclouds.compute.ComputeService;
 import org.jclouds.compute.ComputeServiceContext;
-import org.jclouds.compute.RunScriptOnNodesException;
 import org.jclouds.compute.domain.ExecResponse;
 import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.domain.OsFamily;
 import org.jclouds.compute.domain.Template;
 import org.jclouds.compute.domain.TemplateBuilder;
-import org.jclouds.compute.options.RunScriptOptions;
 import org.jclouds.compute.options.TemplateOptions;
-import org.jclouds.compute.predicates.NodePredicates;
-import org.jclouds.compute.reference.ComputeServiceConstants;
 import org.jclouds.domain.LoginCredentials;
-import org.jclouds.ec2.domain.KeyPair;
-import org.jclouds.ec2.domain.SecurityGroup;
-import org.jclouds.ec2.options.RunInstancesOptions;
-import org.jclouds.enterprise.config.EnterpriseConfigurationModule;
-import org.jclouds.googlecloud.config.GoogleCloudProperties;
-import org.jclouds.googlecomputeengine.GoogleComputeEngineApi;
-import org.jclouds.googlecomputeengine.GoogleComputeEngineApiMetadata;
-import org.jclouds.googlecomputeengine.compute.functions.FirewallTagNamingConvention;
 import org.jclouds.googlecomputeengine.compute.options.GoogleComputeEngineTemplateOptions;
-import org.jclouds.googlecomputeengine.domain.Firewall;
-import org.jclouds.googlecomputeengine.domain.Firewall.Rule;
-import org.jclouds.googlecomputeengine.features.FirewallApi;
-import org.jclouds.googlecomputeengine.options.FirewallOptions;
 import org.jclouds.logging.slf4j.config.SLF4JLoggingModule;
-import org.jclouds.net.domain.IpPermission;
-import org.jclouds.net.domain.IpProtocol;
-import org.jclouds.profitbricks.compute.config.ProfitBricksComputeServiceContextModule.ComputeConstants;
 import org.jclouds.scriptbuilder.domain.Statements;
 import org.jclouds.sshj.config.SshjSshClientModule;
 
@@ -55,9 +27,11 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.io.Files;
 import com.google.inject.Module;
-
+import com.hybris.provider.Cpu;
+import com.hybris.provider.DiskSize;
 import com.hybris.provider.Provider;
-import com.hybris.provider.specifications.*;
+import com.hybris.provider.RamSize;
+import com.hybris.provider.Region;
 
 public class CloudService implements CloudServiceAction{
 	
@@ -81,9 +55,7 @@ public class CloudService implements CloudServiceAction{
 															new EnterpriseConfigurationModule());
 		 */
 		
-		Iterable<Module> modules = ImmutableSet.<Module> of( new SshjSshClientModule(), 
-															 new SLF4JLoggingModule(),
-															 new EnterpriseConfigurationModule());
+		Iterable<Module> modules = ImmutableSet.<Module> of( new SshjSshClientModule());
 		
 		ContextBuilder builder = ContextBuilder.newBuilder(this.provider.getApi())
 			.credentials(this.provider.getIdentity(), this.provider.getCredential())
@@ -185,7 +157,6 @@ public class CloudService implements CloudServiceAction{
 			Template template = templateBuilder.build();
 			TemplateOptions templateOptions = template.getOptions();
 			
-			
 			switch (this.provider) {
 			
 			case AmazonWebService:
@@ -209,8 +180,9 @@ public class CloudService implements CloudServiceAction{
 				//String keyName = "alpanachaphalkar";
 				System.out.printf(">> Importing public key %s%n", keyName);
 				System.out.println();
+				
 				templateOptions.as(AWSEC2TemplateOptions.class).keyPair(keyName);
-				templateOptions.as(AWSEC2TemplateOptions.class).securityGroupIds("sg-db2a18aa");
+				templateOptions.as(AWSEC2TemplateOptions.class).subnetId("subnet-13d3fb5b").securityGroups("sg-8651acf6");
 				
 				break;
 			
@@ -224,11 +196,12 @@ public class CloudService implements CloudServiceAction{
 				System.out.printf(">> Importing public key %s%n", keyName);
 				System.out.println();
 				templateOptions.as(GoogleComputeEngineTemplateOptions.class).userMetadata("ssh-keys", GcpPublicKey);
-				//rewallApi firewallApi = computeService.getContext().unwrapApi(GoogleComputeEngineApi.class).firewalls();
-				ArrayList<String> tags = new ArrayList<String>();
-				tags.add("hybris-demo-app-firewall");
-				templateOptions.as(GoogleComputeEngineTemplateOptions.class).tags(tags);
 				
+				ArrayList<String> tags = new ArrayList<String>();
+				tags.add("demo-hybris-firewall");
+				templateOptions.as(GoogleComputeEngineTemplateOptions.class).tags(tags);
+				/*templateOptions.as(GoogleComputeEngineTemplateOptions.class)
+						.networks("demo-hybris-subnet");*/
 				break;
 				
 			}

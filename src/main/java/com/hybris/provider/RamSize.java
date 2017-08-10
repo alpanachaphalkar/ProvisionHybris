@@ -1,6 +1,4 @@
-package com.hybris.provider.specifications;
-
-import com.hybris.provider.Provider;
+package com.hybris.provider;
 
 public enum RamSize {
 	

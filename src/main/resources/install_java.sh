@@ -16,13 +16,10 @@ ENVIRONMENT_FILE_PATH="/etc/environment"
 BASHRC_FILE_PATH="/etc/bash.bashrc"
 BASH_PROFILE_FILE_PATH="/etc/profile"
 BASH_PROFILE_JAVA_HOME_SCRIPT="/etc/profile.d/java.sh"
-HOSTS_FILE_PATH="/etc/hosts"
 #CUSTOM_HOSTNAME="hybris-demo-app-003.hybrishosting.com"
 
-hostnamectl set-hostname $1
 mkdir -p $PACKAGES_DIR
 cd $PACKAGES_DIR
-echo "127.0.0.1 `hostname`" >>$HOSTS_FILE_PATH
 
 # Download Java
 # wget "http://54.210.0.102/java-packages/jdk-8u131-linux-x64.tar.gz" -P /opt/packages

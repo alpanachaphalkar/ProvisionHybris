@@ -1,4 +1,4 @@
-package com.hybris.provision;
+package com.hybris;
 
 public enum HybrisVersion {
 	

@@ -20,6 +20,7 @@ HYBRIS_INSTALLER_RECIPE_SCRIPT="install.sh"
 HYBRIS_INSTALLER_RECIPE_SCRIPT_PATH="$HYBRIS_INSTALLER_RECIPE_SCRIPT_FOLDER$HYBRIS_INSTALLER_RECIPE_SCRIPT"
 HYBRIS_SERVER_START_SCRIPT="hybrisserver.sh"
 HYBRIS_SERVER_START_SCRIPT_PATH="$HYBRIS_PLATFORM_PATH$HYBRIS_SERVER_START_SCRIPT"
+HYBRIS_SYMLINK="/opt/hybris"
 
 BASH_PROFILE_HYBRIS_HOME_SCRIPT="/etc/profile.d/hybris.sh"
 ENVIRONMENT_FILE_PATH="/etc/environment"
@@ -27,8 +28,27 @@ BASHRC_FILE_PATH="/etc/bash.bashrc"
 BASH_PROFILE_FILE_PATH="/etc/profile"
 HYBRIS_SERVICE_FILE_PATH="/lib/systemd/system/hybris.service"
 
+HYBRIS_SCRIPT_CURRENT_PATH="/opt/scripts/hybris.sh"
+HYBRIS_SCRIPT_DESIRED_PATH="/etc/init.d/hybris"
+
+SUDOERS="/etc/sudoers"
 USERNAME="hybris"
+PASSWORD="hybris"
 USERGROUP="hybris"
+
+## Move hybris shell script to desired location
+mv $HYBRIS_SCRIPT_CURRENT_PATH $HYBRIS_SCRIPT_DESIRED_PATH
+chmod +x $HYBRIS_SCRIPT_DESIRED_PATH
+chown -R root:root $HYBRIS_SCRIPT_DESIRED_PATH
+
+## Adding hybris user and usergroup
+apt-get install whois
+addgroup $USERGROUP
+useradd -p `mkpasswd ${PASSWORD}` -d /home/$USERGROUP -m -g $USERGROUP -s /bin/bash $USERGROUP
+#usermod -aG sudo $USERNAME
+echo "${USERNAME}   ALL=(ALL) NOPASSWD:ALL" >> $SUDOERS
+echo "%${USERGROUP}   ALL=(ALL) NOPASSWD:ALL" >> $SUDOERS
+echo "###################################### User ${USERNAME} and Usergroup ${USERGROUP} is added! ######################################"
 
 # Setting HYBRIS_HOME environment variable
 echo "HYBRIS_HOME=${HYBRIS_HOME}" >>$BASH_PROFILE_HYBRIS_HOME_SCRIPT
@@ -67,6 +87,8 @@ chown -R root:root $PACKAGES_DIR
 mkdir -p $HYBRIS_DIR
 apt-get install unzip
 unzip $HYBRIS_PACKAGE_PATH -d $HYBRIS_DIR
+ln -s $HYBRIS_HOME $HYBRIS_SYMLINK
+chown -R $USERNAME:$USERGROUP $HYBRIS_SYMLINK
 
 rm -r $PACKAGES_DIR
 chmod -R 775 $HYBRIS_DIR

@@ -1,4 +1,4 @@
-package com.hybris.provision;
+package com.hybris;
 
 import java.io.IOException;
 import java.util.Set;
@@ -10,9 +10,12 @@ import org.jclouds.compute.domain.OsFamily;
 import org.jclouds.domain.Location;
 import org.jclouds.scriptbuilder.ScriptBuilder;
 
-import com.hybris.service.CloudService;
+import com.hybris.computeservice.CloudService;
+import com.hybris.provider.Cpu;
+import com.hybris.provider.DiskSize;
 import com.hybris.provider.Provider;
-import com.hybris.provider.specifications.*;
+import com.hybris.provider.RamSize;
+import com.hybris.provider.Region;
 
 /**
  * Main Provision App
@@ -26,18 +29,18 @@ public class ProvisionApp {
 		 *		AWS Provider Compute Service		*
 		 * ******************************************/	
 		long timeStart = System.currentTimeMillis();
-		/*CloudService service = new CloudService(Provider.AmazonWebService);*/
+		CloudService service = new CloudService(Provider.AmazonWebService);
 		
 		
 		/* ******************************************
 		 *		GCP Provider Compute Service		*
 		 * ******************************************/
-		CloudService service = new CloudService(Provider.GoogleCloudProvider);
+		/*CloudService service = new CloudService(Provider.GoogleCloudProvider);*/
 		
 				
   		// Compute Service Specifications
 		ComputeService computeService = service.initComputeService();
-		String groupName = "hybris-demo-app-012";
+		String groupName = "hybris-demo-srch-022";
 		String hostName = groupName + ".hybrishosting.com";
  		String keyName = "alpanachaphalkar";
  		OsFamily os = OsFamily.UBUNTU;
@@ -46,19 +49,21 @@ public class ProvisionApp {
  		DiskSize diskSize = DiskSize.Ten;
  		Region region = service.getRegion();
  		String downloadScripts = "C:\\Users\\D066624\\Google Drive\\Rough\\Eclipse\\ProvisionHybris\\src\\main\\resources\\download_scripts.sh";
- 		String cleanUpScript="C:\\Users\\D066624\\Google Drive\\Rough\\Eclipse\\ProvisionHybris\\src\\main\\resources\\clean_up.sh";
  		 		
   		// Create Node or Instance
  		String nodeId = service.createNode(computeService, os, cpu, service.getRamSize(ramSize), diskSize, 
 							region, groupName, keyName, service.getKeyToSsh());
-  		System.out.println("---------------------------------------------------------------------------");
   		
   		// Download scripts for provisioning
-  		service.executeScript(computeService, nodeId, downloadScripts);
-  		
   		System.out.println("---------------------------------------------------------------------------");
+  		System.out.println(">> Set Hostname!");
+  		service.executeCommand(computeService, nodeId, "sudo hostnamectl set-hostname " + hostName);
+  		service.executeScript(computeService, nodeId, downloadScripts);
+  		System.out.println("<< Hostname is set!");
+  		
+  		/*System.out.println("---------------------------------------------------------------------------");
   		System.out.println(">> Java Installation Begins!");
-  		service.executeCommand(computeService, nodeId, "sudo /opt/scripts/install_java.sh " + hostName);
+  		service.executeCommand(computeService, nodeId, "sudo /opt/scripts/install_java.sh");
   		System.out.println("<< Java Installation Completed!");
   		
   		System.out.println("---------------------------------------------------------------------------");
@@ -80,7 +85,7 @@ public class ProvisionApp {
   		System.out.println("---------------------------------------------------------------------------");
   		System.out.println(">> Cleaning Up");
   		service.executeScript(computeService, nodeId, cleanUpScript);
-  		System.out.println("<< Cleaned Up");
+  		System.out.println("<< Cleaned Up");*/
   		
 		// Closing the compute service
 		computeService.getContext().close();

@@ -1,9 +1,11 @@
-package com.hybris.service;
+package com.hybris.computeservice;
 
 import org.jclouds.compute.ComputeService;
 import org.jclouds.compute.domain.OsFamily;
 
-import com.hybris.provider.specifications.*;
+import com.hybris.provider.Cpu;
+import com.hybris.provider.DiskSize;
+import com.hybris.provider.Region;
 
 public interface CloudServiceAction {
 	

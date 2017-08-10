@@ -1,4 +1,4 @@
-package com.hybris.provider.specifications;
+package com.hybris.provider;
 
 public enum Cpu {
 	
