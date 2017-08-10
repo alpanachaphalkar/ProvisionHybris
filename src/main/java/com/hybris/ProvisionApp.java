@@ -40,7 +40,7 @@ public class ProvisionApp {
 				
   		// Compute Service Specifications
 		ComputeService computeService = service.initComputeService();
-		String groupName = "hybris-demo-srch-022";
+		String groupName = "hybris-demo-srch-023";
 		String hostName = groupName + ".hybrishosting.com";
  		String keyName = "alpanachaphalkar";
  		OsFamily os = OsFamily.UBUNTU;

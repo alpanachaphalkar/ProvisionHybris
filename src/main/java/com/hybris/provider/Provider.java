@@ -17,20 +17,26 @@ import com.google.common.io.Files;
 
 public enum Provider {
 	
-	AmazonWebService("aws-ec2"), 
-	GoogleCloudProvider("google-compute-engine");
+	AmazonWebService("aws-ec2", "aws"), 
+	GoogleCloudProvider("google-compute-engine", "gce");
 	
 	private final String providerApi;
+	private final String providerCode;
 	private final Properties properties = new Properties();
 	
-	private Provider(String api) {
+	private Provider(String api, String code) {
 		// TODO Auto-generated constructor stub
 		this.providerApi = api;
+		this.providerCode = code;
 	}
 	
 	public String getApi(){
 		System.out.println(">> Set Provider: " + this.toString());
 		return this.providerApi;
+	}
+	
+	public String getCode(){
+		return this.providerCode;
 	}
 	
 	public Properties getOverrides(){
