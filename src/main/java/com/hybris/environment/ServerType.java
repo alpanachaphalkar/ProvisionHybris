@@ -14,4 +14,20 @@ public enum ServerType {
 	public String getCode(){
 		return code;
 	}
+	
+	public ServerType getServerType(String code){
+		if(code.equals("adm")){
+			return ServerType.Admin;
+		}else if(code.equals("app")){
+			return ServerType.Application;
+		}else if(code.equals("web")){
+			return ServerType.Web;
+		}else if(code.equals("srch")){
+			return ServerType.Search;
+		}else if(code.equals("db")){
+			return ServerType.Database;
+		}else{
+			return null;
+		}
+	}
 }

@@ -30,9 +30,8 @@ public class ProvisionApp {
 		 *		AWS Provider Compute Service		*
 		 * ******************************************/	
 		long timeStart = System.currentTimeMillis();
-		Provider provider = Provider.AmazonWebService;
-		ComputeService computeService = provider.initComputeService();
-		CloudService service = new CloudService(provider);
+		CloudService service = new CloudService(Provider.AmazonWebService);
+		ComputeService computeService = service.initComputeService();
 		
 		
 		/* ******************************************
@@ -53,7 +52,7 @@ public class ProvisionApp {
  		String downloadScripts = "C:\\Users\\D066624\\Google Drive\\Rough\\Eclipse\\ProvisionHybris\\src\\main\\resources\\download_scripts.sh";
  		 		
   		// Create Node or Instance
- 		NodeMetadata node = service.createNode(computeService, os, cpu, ramSize.getSize(service.getProvider()), diskSize, 
+ 		NodeMetadata node = service.createNode(computeService, os, cpu, ramSize.getSize(service.getProvider()), diskSize.getSize(), 
 							region, host);
   		
   		// Download scripts for provisioning

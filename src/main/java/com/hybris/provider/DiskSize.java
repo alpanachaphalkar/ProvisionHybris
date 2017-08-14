@@ -15,4 +15,17 @@ public enum DiskSize {
 		return this.size;
 	}
 	
+	/*public double getSize(Provider provider){
+		switch (provider) {
+		
+		case AmazonWebService:
+			return this.size;
+		case GoogleCloudProvider:
+			return this.size * 1024;
+
+		default:
+			return 0;
+		}
+	}*/
+	
 }

@@ -1,101 +1,84 @@
 package com.hybris.environment;
 
-import org.jclouds.compute.ComputeService;
-import org.jclouds.compute.domain.NodeMetadata;
-import org.jclouds.compute.domain.OsFamily;
+import java.io.File;
+import java.io.IOException;
 
-import com.hybris.computeservice.CloudService;
-import com.hybris.provider.Cpu;
-import com.hybris.provider.DiskSize;
-import com.hybris.provider.RamSize;
-import com.hybris.provider.Region;
+import org.jclouds.compute.ComputeService;
+import org.jclouds.compute.domain.ExecResponse;
+import org.jclouds.compute.domain.NodeMetadata;
+import org.jclouds.compute.options.TemplateOptions;
+import org.jclouds.domain.LoginCredentials;
+import org.jclouds.scriptbuilder.domain.Statements;
+
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 
 public class ServerInstance {
 
-	private CloudService service;
-	private OsFamily os;
-	private Cpu cpu;
-	private RamSize ramsize;
-	private DiskSize disksize;
-	private Region region;
+	private NodeMetadata node;
+	private ComputeService computeService;
 	
-	private static final String SERVER_DOMAIN=".hybrishosting.com";
-	
-	public ServerInstance(CloudService service, OsFamily os, Cpu cpu, RamSize ramSize, DiskSize diskSize, Region region) {
+	public ServerInstance(ComputeService computeService, NodeMetadata node) {
 		// TODO Auto-generated constructor stub
-		this.setService(service);
-		this.setOs(os);
-		this.setCpu(cpu);
-		this.setRamsize(ramSize);
-		this.setDisksize(diskSize);
-		this.setRegion(region);
+		this.setComputeservice(computeService);
+		this.setNode(node);
 	}
 	
-	public NodeMetadata create(String hostname) throws Exception{
+	private LoginCredentials getLoginForProvision(){
 		
-		ComputeService computeService = this.service.getProvider().initComputeService();
-		int ramSize = this.ramsize.getSize(this.service.getProvider());
-		String host = hostname.replace(SERVER_DOMAIN, "");
-		NodeMetadata node = service.createNode(computeService, this.os, this.cpu, ramSize, this.disksize, this.region, host);
-		System.out.println("<<	Server " + host + " is created with following details: ");
-		System.out.println("	Name: " + node.getHostname());
-		System.out.println("	ID: " + node.getId());
-		System.out.println("	Private IP: " + node.getPrivateAddresses());
-		System.out.println("	Public IP: " + node.getPublicAddresses());
-		service.executeCommand(computeService, node, "hostnamectl set-hostname " + hostname);
-		service.executeCommand(computeService, node, "echo \"127.0.0.1 `hostname`\" >>/etc/hosts");
-		System.out.println("<<  Server "+ host +" with hostname " + hostname + " is set.");
-		System.out.println();
-		computeService.getContext().close();
+		try{
+			
+			String user = "ubuntu";
+			//String privateKey = Files.toString(new File("C:\\cygwin64\\home\\D066624\\.ssh\\id_rsa"), Charsets.UTF_8);
+			String privateKey = Files.toString(new 
+					File("C:\\Users\\D066624\\Google Drive\\Rough\\Eclipse\\ProvisionHybris\\src\\main\\resources\\id_rsa"), Charsets.UTF_8);
+			return LoginCredentials.builder().user(user).privateKey(privateKey).build();
+		
+		} catch (Exception e) {
+			System.err.println("Error Reading Private Key: " + e.getMessage());
+			System.exit(1);
+		}
+		
+		return null;
+		
+	}
+	
+	public void executeCommand(String command){
+		LoginCredentials login = this.getLoginForProvision();
+		ExecResponse responses = this.computeService.runScriptOnNode(this.node.getId(), Statements.exec(command), 
+					TemplateOptions.Builder.runScript(command).overrideLoginCredentials(login));
+		System.out.println(responses.getOutput());
+	}
+	
+	public void executeScript(String pathToScript){
+		File script = new File(pathToScript);
+	    LoginCredentials login = this.getLoginForProvision();
+	    try {
+			ExecResponse responses = this.computeService.runScriptOnNode(this.node.getId(), Files.toString(script, Charsets.UTF_8), 
+										TemplateOptions.Builder.runScript(Files.toString(script, Charsets.UTF_8)).overrideLoginCredentials(login));
+	    
+			System.out.println(responses.getOutput());
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	public ComputeService getComputeservice() {
+		return computeService;
+	}
+
+	public void setComputeservice(ComputeService computeservice) {
+		this.computeService = computeservice;
+	}
+
+	public NodeMetadata getNode() {
 		return node;
 	}
+
+	public void setNode(NodeMetadata node) {
+		this.node = node;
+	}
 	
-	public CloudService getService() {
-		return service;
-	}
-
-	public void setService(CloudService service) {
-		this.service = service;
-	}
-
-	public OsFamily getOs() {
-		return os;
-	}
-
-	public void setOs(OsFamily os) {
-		this.os = os;
-	}
-
-	public Cpu getCpu() {
-		return cpu;
-	}
-
-	public void setCpu(Cpu cpu) {
-		this.cpu = cpu;
-	}
-
-	public RamSize getRamsize() {
-		return ramsize;
-	}
-
-	public void setRamsize(RamSize ramsize) {
-		this.ramsize = ramsize;
-	}
-
-	public DiskSize getDisksize() {
-		return disksize;
-	}
-
-	public void setDisksize(DiskSize disksize) {
-		this.disksize = disksize;
-	}
-
-	public Region getRegion() {
-		return region;
-	}
-
-	public void setRegion(Region region) {
-		this.region = region;
-	}
-
 }

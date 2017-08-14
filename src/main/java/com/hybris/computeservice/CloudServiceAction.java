@@ -11,7 +11,7 @@ import com.hybris.provider.Region;
 public interface CloudServiceAction {
 	
 	// creates node or an instance based on gropuname
-	NodeMetadata createNode(ComputeService computeService, OsFamily os, Cpu cpu, int ramSize, DiskSize diskSize,
+	NodeMetadata createNode(ComputeService computeService, OsFamily os, Cpu cpu, int ramSize, double diskSize,
 					Region region, String groupName);
 	
 	void executeCommand(ComputeService computeService, NodeMetadata node, String command);

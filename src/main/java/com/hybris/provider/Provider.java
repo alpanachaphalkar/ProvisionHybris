@@ -23,58 +23,22 @@ import com.google.inject.Module;
 
 public enum Provider {
 	
-	AmazonWebService("aws-ec2", "aws"), 
-	GoogleCloudProvider("google-compute-engine", "gce");
+	AmazonWebService("aws-ec2", "aws", Region.AWS_UsEast1), 
+	GoogleCloudProvider("google-compute-engine", "gce", Region.GCP_UsEast1b);
 	
-	private final String providerApi;
-	private final String providerCode;
+	private final String api;
+	private final String code;
+	private final Region region;
 	private final Properties properties = new Properties();
 	
-	private Provider(String api, String code) {
+	private Provider(String api, String code, Region region) {
 		// TODO Auto-generated constructor stub
-		this.providerApi = api;
-		this.providerCode = code;
+		this.api = api;
+		this.code = code;
+		this.region = region;
 	}
 	
-	public String getApi(){
-		System.out.println(">> Set Provider: " + this.toString());
-		return this.providerApi;
-	}
-	
-	public String getCode(){
-		return this.providerCode;
-	}
-	
-	public ComputeService initComputeService() throws Exception{
-		
-		Iterable<Module> modules = ImmutableSet.<Module> of( new SshjSshClientModule());
-		
-		ContextBuilder builder = ContextBuilder.newBuilder(this.getApi())
-			.credentials(this.getIdentity(), this.getCredential())
-			.overrides(this.getOverrides())
-			.modules(modules);
-		
-		System.out.printf(">> initializing %s%n", builder.getApiMetadata());
-		ComputeServiceContext computeServiceContext = builder.buildView(ComputeServiceContext.class);
-		return computeServiceContext.getComputeService();
-		
-	}
-	
-	public Properties getOverrides(){
-		
-		Properties overrides = new Properties();
-		
-		if(this.equals(AmazonWebService)){
-			overrides.setProperty(AWSEC2Constants.PROPERTY_EC2_AMI_QUERY, "owner-id=137112412989;state=available;image-type=machine;root-device-type=ebs");
-		}
-		
-		long scriptTimeout = TimeUnit.MILLISECONDS.convert(2, TimeUnit.HOURS);
-		overrides.setProperty(ComputeServiceProperties.TIMEOUT_SCRIPT_COMPLETE, scriptTimeout + "");
-		System.out.println(">> Overrides Properties set..");
-		return overrides;
-	}
-	
-	public String getIdentity() throws IOException{
+	private String getIdentity() throws IOException{
 		
 		this.properties.load(Provider.class.getClassLoader().getResourceAsStream("cloudprovider.properties"));
 		String identity = "";
@@ -95,7 +59,23 @@ public enum Provider {
 		
 	}
 	
-	public String getCredential() throws IOException{
+	private String getGcpCredentialFromJsonKey(String filename){
+		
+		try {
+            String fileContents = Files.toString(new File(filename), UTF_8);
+            Supplier<Credentials> credentialSupplier = new GoogleCredentialsFromJson(fileContents);
+            String credential = credentialSupplier.get().credential;
+            return credential;
+        } catch (IOException e) {
+            System.err.println("Exception reading private key from '%s': " + filename);
+            e.printStackTrace();
+            System.exit(1);
+            return null;
+        }
+		
+	}
+	
+	private String getCredential() throws IOException{
 		
 		this.properties.load(Provider.class.getClassLoader().getResourceAsStream("cloudprovider.properties"));
 		String credentials = "";
@@ -116,20 +96,44 @@ public enum Provider {
 		
 	}
 	
-	private String getGcpCredentialFromJsonKey(String filename){
+	private Properties getOverrides(){
 		
-		try {
-            String fileContents = Files.toString(new File(filename), UTF_8);
-            Supplier<Credentials> credentialSupplier = new GoogleCredentialsFromJson(fileContents);
-            String credential = credentialSupplier.get().credential;
-            return credential;
-        } catch (IOException e) {
-            System.err.println("Exception reading private key from '%s': " + filename);
-            e.printStackTrace();
-            System.exit(1);
-            return null;
-        }
+		Properties overrides = new Properties();
 		
+		if(this.equals(Provider.AmazonWebService)){
+			overrides.setProperty(AWSEC2Constants.PROPERTY_EC2_AMI_QUERY, "owner-id=137112412989;state=available;image-type=machine;root-device-type=ebs");
+		}
+		
+		long scriptTimeout = TimeUnit.MILLISECONDS.convert(2, TimeUnit.HOURS);
+		overrides.setProperty(ComputeServiceProperties.TIMEOUT_SCRIPT_COMPLETE, scriptTimeout + "");
+		System.out.println(">> Overrides Properties set..");
+		return overrides;
+	}
+	
+	public ComputeService getComputeService() throws Exception{
+		Iterable<Module> modules = ImmutableSet.<Module> of( new SshjSshClientModule());
+		
+		ContextBuilder builder = ContextBuilder.newBuilder(this.getApi())
+			.credentials(this.getIdentity(), this.getCredential())
+			.overrides(this.getOverrides())
+			.modules(modules);
+		
+		System.out.printf(">> initializing %s%n", builder.getApiMetadata());
+		ComputeServiceContext computeServiceContext = builder.buildView(ComputeServiceContext.class);
+		return computeServiceContext.getComputeService();
+	}
+	
+	public String getApi() {
+		return api;
+	}
+
+
+	public String getCode() {
+		return code;
+	}
+
+	public Region getRegion() {
+		return region;
 	}
 	
 }
