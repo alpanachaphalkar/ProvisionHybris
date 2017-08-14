@@ -9,7 +9,9 @@ import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.domain.Template;
 
 import com.google.common.collect.Iterables;
-
+import com.hybris.HybrisRecipe;
+import com.hybris.HybrisVersion;
+import com.hybris.JavaVersion;
 import com.hybris.provider.Provider;
 
 
@@ -19,6 +21,9 @@ public class Environment {
 	public EnvironmentType environment_type;
 	public Provider provider;
 	public static final String SERVER_DOMAIN=".hybrishosting.com";
+	private static final String REPO_SERVER="54.210.0.102";
+	private static final String SCRIPTS_DIR="/opt/scripts/";
+	private static final String PROVISION_JAVA_SCRIPT="http://" + REPO_SERVER + "/scripts/provision_java.sh";
 	
 	public Environment(Provider provider, String projectCode, EnvironmentType environmentType) {
 		// TODO Auto-generated constructor stub
@@ -54,6 +59,52 @@ public class Environment {
 		}
 		
 		return hostTemplates;
+	}
+	
+	public void provision(ComputeService computeService, HashMap<String, NodeMetadata> environmentMap,
+							JavaVersion javaVersion, HybrisVersion hybrisVersion, HybrisRecipe hybrisRecipe){
+		for(Map.Entry<String, NodeMetadata> environmentEntry:environmentMap.entrySet()){
+			String hostname = environmentEntry.getKey();
+			NodeMetadata node = environmentEntry.getValue();
+			ServerInstance serverIntance = new ServerInstance(computeService, node);
+			ServerType serverType = this.getServerType(hostname);
+			String javaPackage = javaVersion.getPackageName();
+			String javaVersionFolder = javaVersion.getFolderName();
+			
+			switch (serverType) {
+				case Admin:
+					System.out.println(">> Provisioning java on " + hostname);
+					serverIntance.executeCommand("mkdir "+ SCRIPTS_DIR +"; wget " + PROVISION_JAVA_SCRIPT + " -P " + SCRIPTS_DIR);
+					serverIntance.executeCommand("chmod -R 775 " + SCRIPTS_DIR + "; chown -R root:root " + SCRIPTS_DIR);
+					serverIntance.executeCommand("sudo " + SCRIPTS_DIR +"provision_java.sh " + javaPackage + " " + javaVersionFolder);
+					System.out.println("<< Provisioning of java completed on " + hostname);
+					break;
+				case Application:
+					System.out.println(">> Provisioning java on " + hostname);
+					serverIntance.executeCommand("mkdir "+ SCRIPTS_DIR +"; wget " + PROVISION_JAVA_SCRIPT + " -P " + SCRIPTS_DIR);
+					serverIntance.executeCommand("chmod -R 775 " + SCRIPTS_DIR + "; chown -R root:root " + SCRIPTS_DIR);
+					serverIntance.executeCommand("sudo " + SCRIPTS_DIR +"provision_java.sh " + javaPackage + " " + javaVersionFolder);
+					System.out.println("<< Provisioning of java completed on " + hostname);
+					break;
+				case Web:
+					System.out.println(">> Provisioning apache2 on " + hostname);
+					System.out.println("<< Provisioning of apache2 completed on " + hostname);
+					break;
+				case Search:
+					System.out.println(">> Provisioning java on " + hostname);
+					serverIntance.executeCommand("mkdir "+ SCRIPTS_DIR +"; wget " + PROVISION_JAVA_SCRIPT + " -P " + SCRIPTS_DIR);
+					serverIntance.executeCommand("chmod -R 775 " + SCRIPTS_DIR + "; chown -R root:root " + SCRIPTS_DIR);
+					serverIntance.executeCommand("sudo " + SCRIPTS_DIR +"provision_java.sh " + javaPackage + " " + javaVersionFolder);
+					System.out.println("<< Provisioning of java completed on " + hostname);
+					break;
+				case Database:
+					
+					break;
+				default:
+					break;
+			}
+			
+		}
 	}
 	
 	public HashMap<String, NodeMetadata> create(ComputeService computeService, Server[] servers){
@@ -103,6 +154,9 @@ public class Environment {
 				serverInstance.executeCommand("echo \"127.0.0.1 `hostname`\" >>/etc/hosts");
 				System.out.println("<< Host " + host + " is set");
 			}
+			System.out.println(">> Provisioning on " + this.project_code + "-" + this.environment_type.getCode() + " begins");
+			this.provision(computeService, environmentMap, JavaVersion.Java8u131, HybrisVersion.Hybris6_2_0, HybrisRecipe.B2C_Accelerator);
+			
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -119,17 +173,16 @@ public class Environment {
 		
 		long timeStart = System.currentTimeMillis();
 		try{
-			Provider provider = Provider.GoogleCloudProvider;
-			/*ComputeService computeService = provider.getComputeService();
+			Provider provider = Provider.AmazonWebService;
+			ComputeService computeService = provider.getComputeService();
 			Server[] servers = {new Server(computeService, ServerType.Admin, 1),
 								new Server(computeService, ServerType.Application, 1),
 								new Server(computeService, ServerType.Web, 1),
 								new Server(computeService, ServerType.Search, 1),
-								new Server(computeService, ServerType.Database, 1)};*/
-			Environment environment = new Environment(provider, "demo", EnvironmentType.Development);
-			System.out.println(environment.getServerType("demo-d-gce-web-001.hybrishosting.com"));
-			/*environment.create(computeService, servers);
-			computeService.getContext().close();*/
+								/*new Server(computeService, ServerType.Database, 1)*/};
+			Environment environment = new Environment(provider, "try6", EnvironmentType.Development);
+			environment.create(computeService, servers);
+			computeService.getContext().close();
 			
 		}catch(Exception e){
 			e.printStackTrace();

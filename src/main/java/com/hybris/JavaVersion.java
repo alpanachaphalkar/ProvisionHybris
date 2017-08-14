@@ -10,6 +10,7 @@ public enum JavaVersion {
 	private JavaVersion(String packageName, String folderName) {
 		// TODO Auto-generated constructor stub
 		this.setPackageName(packageName);
+		this.setFolderName(folderName);
 	}
 
 	public String getPackageName() {
