@@ -2,10 +2,12 @@ package com.hybris.environment;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 
 import org.jclouds.compute.ComputeService;
 import org.jclouds.compute.domain.ExecResponse;
 import org.jclouds.compute.domain.NodeMetadata;
+import org.jclouds.compute.domain.Template;
 import org.jclouds.compute.options.TemplateOptions;
 import org.jclouds.domain.LoginCredentials;
 import org.jclouds.scriptbuilder.domain.Statements;

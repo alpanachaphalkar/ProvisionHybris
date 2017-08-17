@@ -2,13 +2,13 @@ package com.hybris.environment;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import org.jclouds.compute.ComputeService;
 import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.domain.Template;
 
-import com.google.common.collect.Iterables;
 import com.hybris.HybrisRecipe;
 import com.hybris.HybrisVersion;
 import com.hybris.JavaVersion;
@@ -23,7 +23,12 @@ public class Environment {
 	public static final String SERVER_DOMAIN=".hybrishosting.com";
 	private static final String REPO_SERVER="54.210.0.102";
 	private static final String SCRIPTS_DIR="/opt/scripts/";
+	//private static final String JAVA_ENV_FILE="/etc/profile.d/java.sh";
+	//private static final String HYBRIS_ENV_FILE="/etc/profile.d/hybris.sh";
 	private static final String PROVISION_JAVA_SCRIPT="http://" + REPO_SERVER + "/scripts/provision_java.sh";
+	private static final String PROVISION_HYBRIS_SCRIPT="http://"+ REPO_SERVER +"/scripts/provision_hybris.sh";
+	private static final String SET_HYBRIS_ENV_SCRIPT="http://" + REPO_SERVER + "/scripts/set_hybris_env.sh";
+	private static final String SET_JAVA_ENV_SCRIPT="http://"+ REPO_SERVER +"/scripts/set_java_env.sh";
 	
 	public Environment(Provider provider, String projectCode, EnvironmentType environmentType) {
 		// TODO Auto-generated constructor stub
@@ -32,12 +37,47 @@ public class Environment {
 		this.provider = provider;
 	}
 	
+	public Properties getConfigurationProps(HybrisVersion hybrisVersion, HybrisRecipe hybrisRecipe, JavaVersion javaVersion, String domainName){
+		Properties configurationProps = new Properties();
+		configurationProps.setProperty("hybris.version", hybrisVersion.getHybrisVersion());
+		configurationProps.setProperty("hybris.package", hybrisVersion.getHybrisPackage());
+		configurationProps.setProperty("hybris.recipe", hybrisRecipe.getRecipeId());
+		configurationProps.setProperty("java.version", javaVersion.getJavaVersion());
+		configurationProps.setProperty("java.package", javaVersion.getPackageName());
+		configurationProps.setProperty("domain.name", domainName);
+		return configurationProps;
+	}
+	
 	private ServerType getServerType(String hostname){
 		
 		String serverTypeCode = hostname.split("-")[3];
 		ServerType serverType = ServerType.Admin;
 		serverType = serverType.getServerType(serverTypeCode);
 		return serverType;
+	}
+	
+	private String getClusterId(String hostname){
+		
+		String clusterId="0";
+		String hostCount=hostname.split("-")[4].substring(2, 3);
+		
+		ServerType serverType = this.getServerType(hostname);
+		switch (serverType) {
+		case Admin:
+			int adminClusterId = Integer.parseInt(hostCount);
+			adminClusterId -= 1;
+			clusterId = Integer.toString(adminClusterId);
+			break;
+		case Application:
+			int appClusterId = Integer.parseInt(hostCount);
+			appClusterId -= 1;
+			clusterId = "1" + Integer.toString(appClusterId);
+			break;
+		default:
+			break;
+		}
+		
+		return clusterId;
 	}
 	
 	private HashMap<String, Template> getHostTemplates(Server server){
@@ -69,22 +109,52 @@ public class Environment {
 			ServerInstance serverIntance = new ServerInstance(computeService, node);
 			ServerType serverType = this.getServerType(hostname);
 			String javaPackage = javaVersion.getPackageName();
-			String javaVersionFolder = javaVersion.getFolderName();
+			String javaVersionFolder = javaVersion.getJavaVersion();
+			String hybris_version = hybrisVersion.getHybrisVersion();
+			String hybris_package = hybrisVersion.getHybrisPackage();
+			String acceleratorType = hybrisRecipe.getRecipeId();
 			
 			switch (serverType) {
 				case Admin:
-					System.out.println(">> Provisioning java on " + hostname);
+					System.out.println(">> Downloading scripts..");
 					serverIntance.executeCommand("mkdir "+ SCRIPTS_DIR +"; wget " + PROVISION_JAVA_SCRIPT + " -P " + SCRIPTS_DIR);
+					serverIntance.executeCommand("wget " + PROVISION_HYBRIS_SCRIPT + " -P " + SCRIPTS_DIR);
+					serverIntance.executeCommand("wget " + SET_JAVA_ENV_SCRIPT + " -P " + SCRIPTS_DIR);
+					serverIntance.executeCommand("wget " + SET_HYBRIS_ENV_SCRIPT + " -P " + SCRIPTS_DIR);
 					serverIntance.executeCommand("chmod -R 775 " + SCRIPTS_DIR + "; chown -R root:root " + SCRIPTS_DIR);
+					System.out.println(">> Setting Hybris Environment on " + hostname);
+					serverIntance.executeCommand("sudo source " + SCRIPTS_DIR + "set_java_env.sh " + javaVersionFolder);
+					serverIntance.executeCommand("sudo source " + SCRIPTS_DIR + "set_hybris_env.sh " + hybris_version);
+					/*serverIntance.executeCommand("source " + JAVA_ENV_FILE + "; source " + HYBRIS_ENV_FILE);*/
+					System.out.println("<< Setting of Hybris environment completed on " + hostname);
+					System.out.println();
+					System.out.println(">> Provisioning java on " + hostname);
 					serverIntance.executeCommand("sudo " + SCRIPTS_DIR +"provision_java.sh " + javaPackage + " " + javaVersionFolder);
 					System.out.println("<< Provisioning of java completed on " + hostname);
+					System.out.println();
+					System.out.println(">> Provisioning hybris on " + hostname);
+					String adminClusterId = this.getClusterId(hostname);
+					serverIntance.executeCommand("sudo " + SCRIPTS_DIR + "provision_hybris.sh " + hybris_version + " " + hybris_package
+																								+ " " + acceleratorType + " "
+																								+ adminClusterId);
+					serverIntance.executeCommand("rm -r " + SCRIPTS_DIR);
+					System.out.println("<< Provisioning of hybris completed on " + hostname);
 					break;
 				case Application:
 					System.out.println(">> Provisioning java on " + hostname);
 					serverIntance.executeCommand("mkdir "+ SCRIPTS_DIR +"; wget " + PROVISION_JAVA_SCRIPT + " -P " + SCRIPTS_DIR);
+					serverIntance.executeCommand("wget " + PROVISION_HYBRIS_SCRIPT + " -P " + SCRIPTS_DIR);
 					serverIntance.executeCommand("chmod -R 775 " + SCRIPTS_DIR + "; chown -R root:root " + SCRIPTS_DIR);
 					serverIntance.executeCommand("sudo " + SCRIPTS_DIR +"provision_java.sh " + javaPackage + " " + javaVersionFolder);
 					System.out.println("<< Provisioning of java completed on " + hostname);
+					System.out.println();
+					System.out.println(">> Provisioning hybris on " + hostname);
+					String appClusterId = this.getClusterId(hostname);
+					serverIntance.executeCommand("sudo " + SCRIPTS_DIR + "provision_hybris.sh " + hybris_version + " " + hybris_package
+																								+ " " + acceleratorType + " "
+																								+ appClusterId);
+					serverIntance.executeCommand("rm -r " + SCRIPTS_DIR);
+					System.out.println("<< Provisioning of hybris completed on " + hostname);
 					break;
 				case Web:
 					System.out.println(">> Provisioning apache2 on " + hostname);
@@ -107,7 +177,7 @@ public class Environment {
 		}
 	}
 	
-	public HashMap<String, NodeMetadata> create(ComputeService computeService, Server[] servers){
+	public HashMap<String, NodeMetadata> create(ComputeService computeService, Server[] servers, Properties configurationProps){
 		
 		HashMap<String, NodeMetadata> environmentMap = new HashMap<String, NodeMetadata>();
 		
@@ -117,46 +187,6 @@ public class Environment {
 		}
 		
 		try {
-			System.out.println(">> Creating templates and hostnames");
-			HashMap<String, Template> hostTemplates = new HashMap<String, Template>();
-			for(Server server:servers){
-				hostTemplates.putAll(this.getHostTemplates(server));
-			}
-			System.out.println(hostTemplates.keySet());
-			
-			if(hostTemplates.isEmpty()){
-				System.out.println("Hostnames are not generated for " + this.project_code + "-" + this.environment_type.getCode());
-				return environmentMap;
-			}
-			System.out.println(">> Creating instances");
-			for(Map.Entry<String, Template> hostTemplate:hostTemplates.entrySet()){
-				String host = hostTemplate.getKey().replace(SERVER_DOMAIN, "");
-				NodeMetadata node = Iterables.getOnlyElement(computeService.createNodesInGroup(host, 1, hostTemplate.getValue()));
-				System.out.println("<<	Server " + hostTemplate.getKey() + " is created with following details: ");
-				System.out.println("	Name: " + node.getHostname());
-				System.out.println("	ID: " + node.getId());
-				System.out.println("	Private IP: " + node.getPrivateAddresses());
-				System.out.println("	Public IP: " + node.getPublicAddresses());
-				environmentMap.put(hostTemplate.getKey(), node);
-			}
-			System.out.println(environmentMap.keySet());
-			
-			if(environmentMap.isEmpty()){
-				System.out.println("Environment is not created for " + this.project_code + "-" + this.environment_type.getCode());
-				return environmentMap;
-			}
-			System.out.println(">> Setting hostnames to instances");
-			for(Map.Entry<String, NodeMetadata> environmentEntry:environmentMap.entrySet()){
-				String host = environmentEntry.getKey();
-				NodeMetadata node = environmentEntry.getValue();
-				ServerInstance serverInstance = new ServerInstance(computeService, node);
-				serverInstance.executeCommand("hostnamectl set-hostname " + host);
-				serverInstance.executeCommand("echo \"127.0.0.1 `hostname`\" >>/etc/hosts");
-				System.out.println("<< Host " + host + " is set");
-			}
-			System.out.println(">> Provisioning on " + this.project_code + "-" + this.environment_type.getCode() + " begins");
-			this.provision(computeService, environmentMap, JavaVersion.Java8u131, HybrisVersion.Hybris6_2_0, HybrisRecipe.B2C_Accelerator);
-			
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -173,15 +203,21 @@ public class Environment {
 		
 		long timeStart = System.currentTimeMillis();
 		try{
+			
 			Provider provider = Provider.AmazonWebService;
 			ComputeService computeService = provider.getComputeService();
 			Server[] servers = {new Server(computeService, ServerType.Admin, 1),
-								new Server(computeService, ServerType.Application, 1),
+								/*new Server(computeService, ServerType.Application, 1),
 								new Server(computeService, ServerType.Web, 1),
 								new Server(computeService, ServerType.Search, 1),
-								/*new Server(computeService, ServerType.Database, 1)*/};
-			Environment environment = new Environment(provider, "try6", EnvironmentType.Development);
-			environment.create(computeService, servers);
+								new Server(computeService, ServerType.Database, 1)*/};
+			String projectCode="try5";
+			Environment environment = new Environment(provider, projectCode, EnvironmentType.Development);
+			Properties configurationProps = environment.getConfigurationProps(HybrisVersion.Hybris6_2_0, 
+																			  HybrisRecipe.B2C_Accelerator, 
+																			  JavaVersion.Java8u131, 
+																			  "www." + projectCode + "b2cdemo.com");
+			environment.create(computeService, servers, configurationProps);
 			computeService.getContext().close();
 			
 		}catch(Exception e){

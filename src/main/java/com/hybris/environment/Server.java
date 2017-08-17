@@ -5,12 +5,14 @@ import java.util.ArrayList;
 
 import org.jclouds.aws.ec2.compute.AWSEC2TemplateOptions;
 import org.jclouds.compute.ComputeService;
+import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.domain.Template;
 import org.jclouds.compute.domain.TemplateBuilder;
 import org.jclouds.compute.options.TemplateOptions;
 import org.jclouds.googlecomputeengine.compute.options.GoogleComputeEngineTemplateOptions;
 
 import com.google.common.base.Charsets;
+import com.google.common.collect.Iterables;
 import com.google.common.io.Files;
 import com.hybris.provider.Provider;
 
@@ -19,6 +21,7 @@ public class Server {
 	private ServerType serverType;
 	private ComputeService computeservice;
 	private int severCount;
+	public static final String SERVER_DOMAIN=".hybrishosting.com";
 	
 	public Server(ComputeService computeService, ServerType type, int count) {
 		// TODO Auto-generated constructor stub
@@ -102,4 +105,22 @@ public class Server {
 		return template;
 		
 	}
+	
+	public NodeMetadata create(Template template, String hostname) throws Exception{
+		System.out.println(">> Creating instance " + hostname);
+		String host = hostname.replace(SERVER_DOMAIN, "");
+		NodeMetadata instance = Iterables.getOnlyElement(this.computeservice.createNodesInGroup(host, 1, template));
+		System.out.println("<<	Server " + hostname + " is created with following details: ");
+		System.out.println("	Name: " + instance.getHostname());
+		System.out.println("	ID: " + instance.getId());
+		System.out.println("	Private IP: " + instance.getPrivateAddresses());
+		System.out.println("	Public IP: " + instance.getPublicAddresses());
+		ServerInstance serverInstance = new ServerInstance(this.computeservice, instance);
+		System.out.println(">> Setting hostname");
+		serverInstance.executeCommand("hostnamectl set-hostname " + hostname);
+		serverInstance.executeCommand("echo \"127.0.0.1 `hostname`\" >>/etc/hosts");
+		System.out.println("<< Instance is created with hostname " + hostname);
+		return instance;
+	}
+	
 }

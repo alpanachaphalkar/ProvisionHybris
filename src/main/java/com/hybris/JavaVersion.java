@@ -5,12 +5,12 @@ public enum JavaVersion {
 	Java8u131("jdk-8u131-linux-x64.tar.gz", "java-8-oracle");
 	
 	private String packageName;
-	private String folderName;
+	private String javaVersion;
 	
-	private JavaVersion(String packageName, String folderName) {
+	private JavaVersion(String packageName, String javaVersion) {
 		// TODO Auto-generated constructor stub
 		this.setPackageName(packageName);
-		this.setFolderName(folderName);
+		this.setJavaVersion(javaVersion);
 	}
 
 	public String getPackageName() {
@@ -21,11 +21,12 @@ public enum JavaVersion {
 		this.packageName = packageName;
 	}
 
-	public String getFolderName() {
-		return folderName;
+	public String getJavaVersion() {
+		return javaVersion;
 	}
 
-	public void setFolderName(String folderName) {
-		this.folderName = folderName;
+	public void setJavaVersion(String javaVersion) {
+		this.javaVersion = javaVersion;
 	}
+	
 }
