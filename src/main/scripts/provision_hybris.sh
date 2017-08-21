@@ -62,7 +62,7 @@ chown -R root:root $HYBRIS_SCRIPT_DESIRED_PATH
 
 ## Adding hybris user and usergroup
 apt-get install whois
-addgroup $USERGROUP; useradd -p `mkpasswd ${PASSWORD}` -d /home/$USERGROUP -m -g $USERGROUP -s /bin/bash $USERGROUP
+addgroup $USERGROUP; useradd -p `mkpasswd ${PASSWORD}` -d /home/$USERNAME -m -g $USERGROUP -s /bin/bash $USERGROUP
 echo "${USERNAME}   ALL=(ALL) NOPASSWD:ALL" >> $SUDOERS; echo "%${USERGROUP}   ALL=(ALL) NOPASSWD:ALL" >> $SUDOERS
 echo "###################################### User ${USERNAME} and Usergroup ${USERGROUP} is added! ######################################"
 
