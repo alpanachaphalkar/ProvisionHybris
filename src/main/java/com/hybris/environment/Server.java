@@ -60,7 +60,8 @@ public class Server {
 			case AmazonWebService:
 				
 				String awsHardwareId = "t2.large";
-				String awsImageId = "us-east-1/ami-841f46ff";
+				//String awsImageId = "us-east-1/ami-841f46ff";
+				String awsImageId = "us-east-1/ami-cd0f5cb6";
 				String awsSubnetId = "subnet-13d3fb5b";
 				String awsSecuritygroupId = "sg-8651acf6";
 				String awsDeviceName = "/dev/sda1";
@@ -79,7 +80,7 @@ public class Server {
 				String pathToKey = "C:\\cygwin64\\home\\D066624\\.ssh\\id_rsa.pub";
 				String GcePublicKey = Files.toString(new File(pathToKey), Charsets.UTF_8);
 				String gceHardwareId = "https://www.googleapis.com/compute/v1/projects/provisionhybris/zones/us-east1-b/machineTypes/n1-standard-1";
-				String gceImageId = "https://www.googleapis.com/compute/v1/projects/provisionhybris/global/images/dev-default-img";
+				String gceImageId = "https://www.googleapis.com/compute/v1/projects/provisionhybris/global/images/hybris-dev-image";
 				String gceSecurityGroupId = "demo-hybris-firewall";
 				ArrayList<String> tags = new ArrayList<String>();
 				tags.add(gceSecurityGroupId);
@@ -106,7 +107,8 @@ public class Server {
 		
 	}
 	
-	public NodeMetadata create(Template template, String hostname) throws Exception{
+	public ServerInstance create(Template template, String hostname) throws Exception{
+		System.out.println();
 		System.out.println(">> Creating instance " + hostname);
 		String host = hostname.replace(SERVER_DOMAIN, "");
 		NodeMetadata instance = Iterables.getOnlyElement(this.computeservice.createNodesInGroup(host, 1, template));
@@ -117,10 +119,10 @@ public class Server {
 		System.out.println("	Public IP: " + instance.getPublicAddresses());
 		ServerInstance serverInstance = new ServerInstance(this.computeservice, instance);
 		System.out.println(">> Setting hostname");
-		serverInstance.executeCommand("hostnamectl set-hostname " + hostname);
-		serverInstance.executeCommand("echo \"127.0.0.1 `hostname`\" >>/etc/hosts");
+		serverInstance.executeCommand("hostnamectl set-hostname " + hostname + "; echo \"127.0.0.1 `hostname`\" >>/etc/hosts");
 		System.out.println("<< Instance is created with hostname " + hostname);
-		return instance;
+		System.out.println();
+		return serverInstance;
 	}
 	
 }
