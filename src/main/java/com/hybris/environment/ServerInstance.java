@@ -24,6 +24,7 @@ public class ServerInstance {
 	private static final String SCRIPTS_DIR="/opt/scripts/";
 	private static final String PROVISION_JAVA_SCRIPT="http://" + REPO_SERVER + "/scripts/provision_java.sh";
 	private static final String PROVISION_HYBRIS_SCRIPT="http://"+ REPO_SERVER +"/scripts/provision_hybris.sh";
+	private static final String PROVISION_SOLR_SCRIPT="http://" + REPO_SERVER + "/scripts/provision_solr.sh";
 	
 	public ServerInstance(ComputeService computeService, NodeMetadata node) {
 		// TODO Auto-generated constructor stub
@@ -58,14 +59,6 @@ public class ServerInstance {
 			System.out.println(responses.getOutput());
 	}
 	
-	public void initScript(String command){
-		
-		LoginCredentials login = this.getLoginForProvision();
-		ExecResponse responses = this.computeService.runScriptOnNode(this.node.getId(), Statements.exec(command),
-				                  TemplateOptions.Builder.runScript(command).wrapInInitScript(true).overrideLoginCredentials(login));
-		System.out.println(responses.getOutput());
-	}
-	
 	public void executeScript(String pathToScript){
 		File script = new File(pathToScript);
 	    LoginCredentials login = this.getLoginForProvision();
@@ -79,6 +72,18 @@ public class ServerInstance {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	public void provisionSolr(Properties configurationProps, String hostname){
+		System.out.println();
+		System.out.println(">> Provisioning solr on " + hostname);
+		this.executeCommand("wget " + PROVISION_SOLR_SCRIPT + " -P " + SCRIPTS_DIR);
+		this.executeCommand("chmod -R 775 " + SCRIPTS_DIR + "; chown -R root:root " + SCRIPTS_DIR);
+		String solrPackage = configurationProps.getProperty(ConfigurationKeys.solr_package.name());
+		this.executeCommand(SCRIPTS_DIR +"provision_solr.sh " + solrPackage);
+		this.executeCommand("rm -r " + SCRIPTS_DIR);
+		System.out.println("<< Provisioning of solr completed on " + hostname);
+		System.out.println();
 	}
 	
 	public void provisionJava(Properties configurationProps, String hostname){

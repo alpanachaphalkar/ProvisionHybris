@@ -38,6 +38,7 @@ public class Environment {
 		configurationProps.setProperty(ConfigurationKeys.hybris_recipe.name(), hybrisRecipe.getRecipeId());
 		configurationProps.setProperty(ConfigurationKeys.java_version.name(), javaVersion.getJavaVersion());
 		configurationProps.setProperty(ConfigurationKeys.java_package.name(), javaVersion.getPackageName());
+		configurationProps.setProperty(ConfigurationKeys.solr_package.name(), hybrisVersion.getSolrPackage());
 		configurationProps.setProperty(ConfigurationKeys.domain_name.name(), domainName);
 		return configurationProps;
 	}
@@ -183,10 +184,11 @@ public class Environment {
 				for(String appHost:appHostTemplates.keySet()){
 
 					ServerInstance appServerInstance = appServers.create(appHostTemplates.get(appHost), appHost);
-					System.out.println();
-					System.out.println(">> Setting Hybris Environment on " + appHost);
+					appServerInstance.provisionJava(configurationProps, appHost);
 					environmentMap.put(appHost, appServerInstance);
-					System.out.println("<< Setting of Hybris environment completed on " + appHost);
+					String appClusterId = this.getClusterId(appHost);
+					configurationProps.setProperty(ConfigurationKeys.cluster_id.name(), appClusterId);
+					appServerInstance.provisionHybris(configurationProps, appHost);
 					
 				}
 			}
@@ -212,6 +214,7 @@ public class Environment {
 					System.out.println(">> Setting Java Environment on " + searchHost);
 					searchServerInstance.provisionJava(configurationProps, searchHost);
 					environmentMap.put(searchHost, searchServerInstance);
+					searchServerInstance.provisionSolr(configurationProps, searchHost);
 					System.out.println("<< Setting of Java environment completed on " + searchHost);
 				}
 				System.out.println(searchHostTemplates.keySet());
@@ -246,15 +249,15 @@ public class Environment {
 			
 			Provider provider = Provider.AmazonWebService;
 			ComputeService computeService = provider.getComputeService();
-			Server[] servers = {new Server(computeService, ServerType.Admin, 1),
-								/*new Server(computeService, ServerType.Application, 1),
-								new Server(computeService, ServerType.Web, 1),
-								new Server(computeService, ServerType.Search, 1),
-								new Server(computeService, ServerType.Database, 1)*/};
-			String projectCode="trial2";
+			Server[] servers = {/*new Server(computeService, ServerType.Admin, 1),*/
+								new Server(computeService, ServerType.Application, 1),
+								/*new Server(computeService, ServerType.Web, 1),*/
+								/*new Server(computeService, ServerType.Search, 1),*/
+								/*new Server(computeService, ServerType.Database, 1)*/};
+			String projectCode="trial3";
 			Environment environment = new Environment(provider, projectCode, EnvironmentType.Development);
-			Properties configurationProps = environment.getConfigurationProps(HybrisVersion.Hybris6_2_0, 
-																			  HybrisRecipe.B2C_Accelerator, 
+			Properties configurationProps = environment.getConfigurationProps(HybrisVersion.Hybris6_3_0, 
+																			  HybrisRecipe.B2B_Accelerator, 
 																			  JavaVersion.Java8u131, 
 																			  "www." + projectCode + "b2cdemo.com");
 			environment.create(computeService, servers, configurationProps);

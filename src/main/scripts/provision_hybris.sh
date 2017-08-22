@@ -109,3 +109,4 @@ ant initialize
 echo "###################################### Hybris Initialize completed! ######################################"
 sudo su root
 chmod -R 775 $HYBRIS_DIR; chown -R $USERNAME:$USERGROUP $HYBRIS_DIR
+sudo su $USERNAME; nohup sudo service hybris start
