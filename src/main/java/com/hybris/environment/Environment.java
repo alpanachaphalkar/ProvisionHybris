@@ -250,11 +250,11 @@ public class Environment {
 			Provider provider = Provider.AmazonWebService;
 			ComputeService computeService = provider.getComputeService();
 			Server[] servers = {/*new Server(computeService, ServerType.Admin, 1),*/
-								new Server(computeService, ServerType.Application, 1),
+								/*new Server(computeService, ServerType.Application, 1),*/
 								/*new Server(computeService, ServerType.Web, 1),*/
-								/*new Server(computeService, ServerType.Search, 1),*/
+								new Server(computeService, ServerType.Search, 1),
 								/*new Server(computeService, ServerType.Database, 1)*/};
-			String projectCode="trial3";
+			String projectCode="tryb2b";
 			Environment environment = new Environment(provider, projectCode, EnvironmentType.Development);
 			Properties configurationProps = environment.getConfigurationProps(HybrisVersion.Hybris6_3_0, 
 																			  HybrisRecipe.B2B_Accelerator, 

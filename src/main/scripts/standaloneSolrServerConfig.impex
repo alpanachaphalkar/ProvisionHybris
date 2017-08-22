@@ -1,0 +1,28 @@
+$serverConfigName=standaloneSolrServerConfig
+$srchServer=http://srch_server:8983/solr
+$indexConfigName=default_shopSolrIndexConfig
+$facetSearchConfig1Name=default_shopIndex
+$indexJobName=full-default_shopIndex-cronJob
+
+# Create the solr server configuration
+INSERT_UPDATE SolrServerConfig;name[unique=true];mode(code);embeddedMaster
+;$serverConfigName;standalone;false
+
+# Define each node in the Solr Cluster, and it's role.
+INSERT_UPDATE SolrEndpointUrl;solrServerConfig(name)[unique=true];url[unique=true];master[unique=true,default=false]
+;$serverConfigName;$srchServer;true
+
+INSERT_UPDATE SolrIndexConfig;name[unique=true];indexMode(code)
+;$indexConfigName;DIRECT
+
+INSERT_UPDATE SolrFacetSearchConfig;name[unique=true];solrServerConfig(name)
+;$facetSearchConfig1Name;$serverConfigName;$indexConfigName
+
+UPDATE SolrIndexerCronJob;code[unique=true];
+"#%afterEach: {
+import de.hybris.platform.solrfacetsearch.jalo.indexer.cron.SolrIndexerCronJob;
+SolrIndexerCronJob cronJob =impex.getLastImportedItem();
+cronJob.getJob().perform(cronJob, true);
+}"
+;full-electronicsIndex-cronJob
+#%afterEach:end

@@ -117,7 +117,7 @@ public class Server {
 		System.out.println("	ID: " + instance.getId());
 		System.out.println("	Private IP: " + instance.getPrivateAddresses());
 		System.out.println("	Public IP: " + instance.getPublicAddresses());
-		ServerInstance serverInstance = new ServerInstance(this.computeservice, instance);
+		ServerInstance serverInstance = new ServerInstance(this.computeservice, instance, hostname);
 		System.out.println(">> Setting hostname");
 		serverInstance.executeCommand("hostnamectl set-hostname " + hostname + "; echo \"127.0.0.1 `hostname`\" >>/etc/hosts");
 		System.out.println("<< Instance is created with hostname " + hostname);

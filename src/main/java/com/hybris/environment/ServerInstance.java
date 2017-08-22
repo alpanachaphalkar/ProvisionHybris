@@ -19,6 +19,7 @@ public class ServerInstance {
 
 	private NodeMetadata node;
 	private ComputeService computeService;
+	private String hostname;
 	public static final String SERVER_DOMAIN=".hybrishosting.com";
 	private static final String REPO_SERVER="54.210.0.102";
 	private static final String SCRIPTS_DIR="/opt/scripts/";
@@ -26,10 +27,11 @@ public class ServerInstance {
 	private static final String PROVISION_HYBRIS_SCRIPT="http://"+ REPO_SERVER +"/scripts/provision_hybris.sh";
 	private static final String PROVISION_SOLR_SCRIPT="http://" + REPO_SERVER + "/scripts/provision_solr.sh";
 	
-	public ServerInstance(ComputeService computeService, NodeMetadata node) {
+	public ServerInstance(ComputeService computeService, NodeMetadata node, String hostname) {
 		// TODO Auto-generated constructor stub
 		this.setComputeservice(computeService);
 		this.setNode(node);
+		this.setHostname(hostname);
 	}
 	
 	private LoginCredentials getLoginForProvision(){
@@ -81,7 +83,7 @@ public class ServerInstance {
 		this.executeCommand("chmod -R 775 " + SCRIPTS_DIR + "; chown -R root:root " + SCRIPTS_DIR);
 		String solrPackage = configurationProps.getProperty(ConfigurationKeys.solr_package.name());
 		this.executeCommand(SCRIPTS_DIR +"provision_solr.sh " + solrPackage);
-		this.executeCommand("rm -r " + SCRIPTS_DIR);
+		//this.executeCommand("rm -r " + SCRIPTS_DIR);
 		System.out.println("<< Provisioning of solr completed on " + hostname);
 		System.out.println();
 	}
@@ -114,7 +116,7 @@ public class ServerInstance {
 		
 		this.executeCommand("source " + SCRIPTS_DIR + "provision_hybris.sh " + hybrisVersion + " " + hybrisPackage
 																		   + " " + acceleratorType + " " + clusterId);
-		this.executeCommand("rm -r " + SCRIPTS_DIR);
+		//this.executeCommand("rm -r " + SCRIPTS_DIR);
 		configurationProps.remove(ConfigurationKeys.cluster_id.name());
 		System.out.println("<< Provisioning of hybris completed on " + hostname);
 		System.out.println();
@@ -134,6 +136,14 @@ public class ServerInstance {
 
 	public void setNode(NodeMetadata node) {
 		this.node = node;
+	}
+
+	public String getHostname() {
+		return hostname;
+	}
+
+	public void setHostname(String hostname) {
+		this.hostname = hostname;
 	}
 	
 }
