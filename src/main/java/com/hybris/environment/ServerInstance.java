@@ -26,6 +26,7 @@ public class ServerInstance {
 	private static final String PROVISION_JAVA_SCRIPT="http://" + REPO_SERVER + "/scripts/provision_java.sh";
 	private static final String PROVISION_HYBRIS_SCRIPT="http://"+ REPO_SERVER +"/scripts/provision_hybris.sh";
 	private static final String PROVISION_SOLR_SCRIPT="http://" + REPO_SERVER + "/scripts/provision_solr.sh";
+	private static final String INTEGRATE_SOLR_ON_HYBRIS_SCRIPT="http://" + REPO_SERVER + "/scripts/integrate_srch_on_hybris.sh";
 	
 	public ServerInstance(ComputeService computeService, NodeMetadata node, String hostname) {
 		// TODO Auto-generated constructor stub
@@ -76,34 +77,46 @@ public class ServerInstance {
 		}
 	}
 	
-	public void provisionSolr(Properties configurationProps, String hostname){
+	public void integrateSolrOnHybris(Properties configurationProps, String srchHost, String srchIP){
 		System.out.println();
-		System.out.println(">> Provisioning solr on " + hostname);
+		System.out.println(">> Integrating solr on " + this.hostname);
+		this.executeCommand("wget " + INTEGRATE_SOLR_ON_HYBRIS_SCRIPT + " -P " + SCRIPTS_DIR);
+		this.executeCommand("chmod -R 775 " + SCRIPTS_DIR + "; chown -R root:root " + SCRIPTS_DIR);
+		String defaultShop = configurationProps.getProperty(ConfigurationKeys.default_shop.name());
+		this.executeCommand(SCRIPTS_DIR +"integrate_srch_on_hybris.sh " + srchHost + " " + srchIP + " " + defaultShop);
+		this.executeCommand("rm -r " + SCRIPTS_DIR);
+		System.out.println("<< Integration of solr completed on " + this.hostname);
+		System.out.println();
+	}
+	
+	public void provisionSolr(Properties configurationProps){
+		System.out.println();
+		System.out.println(">> Provisioning solr on " + this.hostname);
 		this.executeCommand("wget " + PROVISION_SOLR_SCRIPT + " -P " + SCRIPTS_DIR);
 		this.executeCommand("chmod -R 775 " + SCRIPTS_DIR + "; chown -R root:root " + SCRIPTS_DIR);
 		String solrPackage = configurationProps.getProperty(ConfigurationKeys.solr_package.name());
 		this.executeCommand(SCRIPTS_DIR +"provision_solr.sh " + solrPackage);
-		//this.executeCommand("rm -r " + SCRIPTS_DIR);
-		System.out.println("<< Provisioning of solr completed on " + hostname);
+		this.executeCommand("rm -r " + SCRIPTS_DIR);
+		System.out.println("<< Provision of solr completed on " + this.hostname);
 		System.out.println();
 	}
 	
-	public void provisionJava(Properties configurationProps, String hostname){
+	public void provisionJava(Properties configurationProps){
 		System.out.println();
-		System.out.println(">> Downloading scripts on " + hostname);
+		System.out.println(">> Downloading scripts on " + this.hostname);
 		this.executeCommand("mkdir "+ SCRIPTS_DIR +"; wget " + PROVISION_JAVA_SCRIPT + " -P " + SCRIPTS_DIR);
 		this.executeCommand("chmod -R 775 " + SCRIPTS_DIR + "; chown -R root:root " + SCRIPTS_DIR);
 		String javaVersion = configurationProps.getProperty(ConfigurationKeys.java_version.name());
-		System.out.println(">> Provisioning java on " + hostname);
+		System.out.println(">> Provisioning java on " + this.hostname);
 		String javaPackage = configurationProps.getProperty(ConfigurationKeys.java_package.name());
 		this.executeCommand("source " + SCRIPTS_DIR +"provision_java.sh " + javaPackage + " " + javaVersion);
-		System.out.println("<< Provisioning of java completed on " + hostname);
+		System.out.println("<< Provision of java completed on " + this.hostname);
 		System.out.println();
 	}
 	
-	public void provisionHybris(Properties configurationProps, String hostname) {
+	public void provisionHybris(Properties configurationProps) {
 		System.out.println();
-		System.out.println(">> Provisioning hybris on " + hostname);
+		System.out.println(">> Provisioning hybris on " + this.hostname);
 		this.executeCommand("wget " + PROVISION_HYBRIS_SCRIPT + " -P " + SCRIPTS_DIR);
 		this.executeCommand("chmod -R 775 " + SCRIPTS_DIR + "; chown -R root:root " + SCRIPTS_DIR);
 		String hybrisVersion = configurationProps.getProperty(ConfigurationKeys.hybris_version.name());
@@ -116,9 +129,8 @@ public class ServerInstance {
 		
 		this.executeCommand("source " + SCRIPTS_DIR + "provision_hybris.sh " + hybrisVersion + " " + hybrisPackage
 																		   + " " + acceleratorType + " " + clusterId);
-		//this.executeCommand("rm -r " + SCRIPTS_DIR);
 		configurationProps.remove(ConfigurationKeys.cluster_id.name());
-		System.out.println("<< Provisioning of hybris completed on " + hostname);
+		System.out.println("<< Provision of hybris completed on " + this.hostname);
 		System.out.println();
 	}
 	

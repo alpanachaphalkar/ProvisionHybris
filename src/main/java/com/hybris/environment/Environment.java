@@ -39,6 +39,7 @@ public class Environment {
 		configurationProps.setProperty(ConfigurationKeys.java_version.name(), javaVersion.getJavaVersion());
 		configurationProps.setProperty(ConfigurationKeys.java_package.name(), javaVersion.getPackageName());
 		configurationProps.setProperty(ConfigurationKeys.solr_package.name(), hybrisVersion.getSolrPackage());
+		configurationProps.setProperty(ConfigurationKeys.default_shop.name(), hybrisRecipe.getDefaultShop());
 		configurationProps.setProperty(ConfigurationKeys.domain_name.name(), domainName);
 		return configurationProps;
 	}
@@ -96,20 +97,20 @@ public class Environment {
 		return hostTemplates;
 	}
 	
-	public HashMap<String, ServerInstance> create(ComputeService computeService, Server[] servers, Properties configurationProps){
+	public HashMap<ServerType, ArrayList<ServerInstance>> create(ComputeService computeService, Server[] servers, Properties configurationProps){
 		
-		HashMap<String, ServerInstance> environmentMap = new HashMap<String, ServerInstance>();
+		HashMap<ServerType, ArrayList<ServerInstance>> environmentMap = new HashMap<ServerType, ArrayList<ServerInstance>>();
 		
 		if(servers.length == 0){
 			System.out.println("Server list is empty!");
 			return environmentMap;
 		}
 		System.out.println(">> Creating server templates ..");
-		Server adminServers = null;
-		Server appServers = null;
-		Server webServers = null;
-		Server searchServers = null;
-		Server dbServers = null;
+		Server adminServers = null; ArrayList<ServerInstance> adminServerInstances = new ArrayList<ServerInstance>();
+		Server appServers = null; ArrayList<ServerInstance> appServerInstances = new ArrayList<ServerInstance>();
+		Server webServers = null; ArrayList<ServerInstance> webServerInstances = new ArrayList<ServerInstance>();
+		Server searchServers = null; ArrayList<ServerInstance> searchServerInstances = new ArrayList<ServerInstance>();
+		Server dbServers = null; ArrayList<ServerInstance> dbServerInstances = new ArrayList<ServerInstance>();
 		
 		HashMap<String, Template> adminHostTemplates = new HashMap<String, Template>(); 
 		HashMap<String, Template> appHostTemplates = new HashMap<String, Template>(); 
@@ -167,14 +168,14 @@ public class Environment {
 				for(String adminHost:adminHostTemplates.keySet()){
 
 					ServerInstance adminServerInstance = adminServers.create(adminHostTemplates.get(adminHost), adminHost);
-					adminServerInstance.provisionJava(configurationProps, adminHost);
-					environmentMap.put(adminHost, adminServerInstance);
+					adminServerInstance.provisionJava(configurationProps);
+					adminServerInstances.add(adminServerInstance);
 					String adminClusterId = this.getClusterId(adminHost);
 					configurationProps.setProperty(ConfigurationKeys.cluster_id.name(), adminClusterId);
-					adminServerInstance.provisionHybris(configurationProps, adminHost);
+					adminServerInstance.provisionHybris(configurationProps);
 					
 				}
-				
+				environmentMap.put(ServerType.Admin, adminServerInstances);
 			}
 			
 			if(appHostTemplates.isEmpty()){
@@ -184,13 +185,14 @@ public class Environment {
 				for(String appHost:appHostTemplates.keySet()){
 
 					ServerInstance appServerInstance = appServers.create(appHostTemplates.get(appHost), appHost);
-					appServerInstance.provisionJava(configurationProps, appHost);
-					environmentMap.put(appHost, appServerInstance);
+					appServerInstance.provisionJava(configurationProps);
+					appServerInstances.add(appServerInstance);
 					String appClusterId = this.getClusterId(appHost);
 					configurationProps.setProperty(ConfigurationKeys.cluster_id.name(), appClusterId);
-					appServerInstance.provisionHybris(configurationProps, appHost);
+					appServerInstance.provisionHybris(configurationProps);
 					
 				}
+				environmentMap.put(ServerType.Application, appServerInstances);
 			}
 			
 			if(webHostTemplates.isEmpty()){
@@ -199,8 +201,9 @@ public class Environment {
 				String domainName = configurationProps.getProperty(ConfigurationKeys.domain_name.name());
 				for(String webHost:webHostTemplates.keySet()){
 					ServerInstance webServerInstance = webServers.create(webHostTemplates.get(webHost), webHost);
-					environmentMap.put(webHost, webServerInstance);
+					webServerInstances.add(webServerInstance);
 				}
+				environmentMap.put(ServerType.Web, webServerInstances);
 				System.out.println(webHostTemplates.keySet());
 			}
 			
@@ -211,12 +214,11 @@ public class Environment {
 				for(String searchHost:searchHostTemplates.keySet()){
 					ServerInstance searchServerInstance = searchServers.create(searchHostTemplates.get(searchHost), searchHost);
 					System.out.println();
-					System.out.println(">> Setting Java Environment on " + searchHost);
-					searchServerInstance.provisionJava(configurationProps, searchHost);
-					environmentMap.put(searchHost, searchServerInstance);
-					searchServerInstance.provisionSolr(configurationProps, searchHost);
-					System.out.println("<< Setting of Java environment completed on " + searchHost);
+					searchServerInstance.provisionJava(configurationProps);
+					searchServerInstances.add(searchServerInstance);
+					searchServerInstance.provisionSolr(configurationProps);
 				}
+				environmentMap.put(ServerType.Search, searchServerInstances);
 				System.out.println(searchHostTemplates.keySet());
 			}
 			
@@ -226,10 +228,27 @@ public class Environment {
 				
 				for(String dbHost:dbHostTemplates.keySet()){
 					ServerInstance dbServerInstance = dbServers.create(dbHostTemplates.get(dbHost), dbHost);
-					environmentMap.put(dbHost, dbServerInstance);
+					dbServerInstances.add(dbServerInstance);
 				}
+				environmentMap.put(ServerType.Database, dbServerInstances);
 				System.out.println(dbHostTemplates.keySet());
 			}
+			
+			ArrayList<ServerInstance> hybrisServerInstances = new ArrayList<ServerInstance>();
+            hybrisServerInstances.addAll(adminServerInstances);
+            hybrisServerInstances.addAll(appServerInstances);
+            if(hybrisServerInstances.isEmpty() || searchServerInstances.isEmpty()){
+            	System.out.println("Since there are no " + ServerType.Admin + ", " + ServerType.Application + ", "+ ServerType.Search + 
+            						" servers in " + this.project_code + "-" + this.environment_type.getCode());
+            	System.out.println("Integration of Solr on Hybris can not be performed");
+            }else{
+            	String srchHost = searchServerInstances.get(0).getHostname();
+            	String srchIP = searchServerInstances.get(0).getNode().getPublicAddresses().iterator().next();
+            	for(ServerInstance hybrisServerInstance:hybrisServerInstances){
+                	hybrisServerInstance.integrateSolrOnHybris(configurationProps, srchHost, srchIP);
+                }
+            }
+            
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -250,14 +269,14 @@ public class Environment {
 			Provider provider = Provider.AmazonWebService;
 			ComputeService computeService = provider.getComputeService();
 			Server[] servers = {/*new Server(computeService, ServerType.Admin, 1),*/
-								/*new Server(computeService, ServerType.Application, 1),*/
+								new Server(computeService, ServerType.Application, 1),
 								/*new Server(computeService, ServerType.Web, 1),*/
 								new Server(computeService, ServerType.Search, 1),
 								/*new Server(computeService, ServerType.Database, 1)*/};
-			String projectCode="tryb2b";
+			String projectCode="tryb2c";
 			Environment environment = new Environment(provider, projectCode, EnvironmentType.Development);
-			Properties configurationProps = environment.getConfigurationProps(HybrisVersion.Hybris6_3_0, 
-																			  HybrisRecipe.B2B_Accelerator, 
+			Properties configurationProps = environment.getConfigurationProps(HybrisVersion.Hybris6_2_0, 
+																			  HybrisRecipe.B2C_Accelerator, 
 																			  JavaVersion.Java8u131, 
 																			  "www." + projectCode + "b2cdemo.com");
 			environment.create(computeService, servers, configurationProps);
