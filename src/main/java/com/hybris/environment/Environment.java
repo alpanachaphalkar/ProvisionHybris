@@ -2,12 +2,10 @@ package com.hybris.environment;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import org.jclouds.compute.ComputeService;
-import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.domain.Template;
 
 import com.hybris.ConfigurationKeys;
@@ -195,18 +193,6 @@ public class Environment {
 				environmentMap.put(ServerType.Application, appServerInstances);
 			}
 			
-			if(webHostTemplates.isEmpty()){
-				System.out.println(ServerType.Web + " servers are not present in "  + this.project_code + "-" + this.environment_type.getCode());
-			}else{
-				String domainName = configurationProps.getProperty(ConfigurationKeys.domain_name.name());
-				for(String webHost:webHostTemplates.keySet()){
-					ServerInstance webServerInstance = webServers.create(webHostTemplates.get(webHost), webHost);
-					webServerInstances.add(webServerInstance);
-				}
-				environmentMap.put(ServerType.Web, webServerInstances);
-				System.out.println(webHostTemplates.keySet());
-			}
-			
 			if(searchHostTemplates.isEmpty()){
 				System.out.println(ServerType.Search + " servers are not present in "  + this.project_code + "-" + this.environment_type.getCode());
 			}else{
@@ -220,6 +206,17 @@ public class Environment {
 				}
 				environmentMap.put(ServerType.Search, searchServerInstances);
 				System.out.println(searchHostTemplates.keySet());
+			}
+			
+			if(webHostTemplates.isEmpty()){
+				System.out.println(ServerType.Web + " servers are not present in "  + this.project_code + "-" + this.environment_type.getCode());
+			}else{
+				for(String webHost:webHostTemplates.keySet()){
+					ServerInstance webServerInstance = webServers.create(webHostTemplates.get(webHost), webHost);
+					webServerInstances.add(webServerInstance);
+				}
+				environmentMap.put(ServerType.Web, webServerInstances);
+				System.out.println(webHostTemplates.keySet());
 			}
 			
 			if(dbHostTemplates.isEmpty()){
@@ -249,6 +246,17 @@ public class Environment {
                 }
             }
             
+            if(hybrisServerInstances.isEmpty() || webServerInstances.isEmpty()){
+            	System.out.println("Since there are no " + ServerType.Admin + ", " + ServerType.Application + ", "+ ServerType.Web + 
+						" servers in " + this.project_code + "-" + this.environment_type.getCode());
+            	System.out.println("Integration of Hybris on Web can not be performed");
+            }else{
+            	String hybrisHost = hybrisServerInstances.get(0).getHostname();
+            	String hybrisIP = hybrisServerInstances.get(0).getNode().getPublicAddresses().iterator().next();
+            	for(ServerInstance webServerInstance:webServerInstances){
+            		webServerInstance.provisionWeb(configurationProps, hybrisHost, hybrisIP);
+            	}
+            }
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -270,15 +278,15 @@ public class Environment {
 			ComputeService computeService = provider.getComputeService();
 			Server[] servers = {/*new Server(computeService, ServerType.Admin, 1),*/
 								new Server(computeService, ServerType.Application, 1),
-								/*new Server(computeService, ServerType.Web, 1),*/
+								new Server(computeService, ServerType.Web, 1),
 								new Server(computeService, ServerType.Search, 1),
 								/*new Server(computeService, ServerType.Database, 1)*/};
-			String projectCode="tryb2c";
+			String projectCode="tryb2b";
 			Environment environment = new Environment(provider, projectCode, EnvironmentType.Development);
-			Properties configurationProps = environment.getConfigurationProps(HybrisVersion.Hybris6_2_0, 
-																			  HybrisRecipe.B2C_Accelerator, 
+			Properties configurationProps = environment.getConfigurationProps(HybrisVersion.Hybris6_3_0, 
+																			  HybrisRecipe.B2B_Accelerator, 
 																			  JavaVersion.Java8u131, 
-																			  "www." + projectCode + "b2cdemo.com");
+																			  "www." + projectCode + "demo.com");
 			environment.create(computeService, servers, configurationProps);
 			computeService.getContext().close();
 			

@@ -9,11 +9,14 @@ import java.util.concurrent.TimeUnit;
 
 import org.jclouds.ContextBuilder;
 import org.jclouds.aws.ec2.reference.AWSEC2Constants;
+import org.jclouds.aws.reference.AWSConstants;
 import org.jclouds.compute.ComputeService;
 import org.jclouds.compute.ComputeServiceContext;
 import org.jclouds.compute.config.ComputeServiceProperties;
 import org.jclouds.domain.Credentials;
+import org.jclouds.enterprise.config.EnterpriseConfigurationModule;
 import org.jclouds.googlecloud.GoogleCredentialsFromJson;
+import org.jclouds.logging.slf4j.config.SLF4JLoggingModule;
 import org.jclouds.sshj.config.SshjSshClientModule;
 
 import com.google.common.base.Supplier;
@@ -100,18 +103,22 @@ public enum Provider {
 		
 		Properties overrides = new Properties();
 		
-		if(this.equals(Provider.AmazonWebService)){
-			overrides.setProperty(AWSEC2Constants.PROPERTY_EC2_AMI_QUERY, "owner-id=137112412989;state=available;image-type=machine;root-device-type=ebs");
-		}
-		
 		long scriptTimeout = TimeUnit.MILLISECONDS.convert(2, TimeUnit.HOURS);
 		overrides.setProperty(ComputeServiceProperties.TIMEOUT_SCRIPT_COMPLETE, scriptTimeout + "");
+		
+		if(this.equals(Provider.AmazonWebService)){
+			overrides.setProperty(AWSEC2Constants.PROPERTY_EC2_AMI_QUERY, "owner-id=137112412989;state=available;image-type=machine;root-device-type=ebs");
+			overrides.setProperty(AWSEC2Constants.PROPERTY_EC2_CC_AMI_QUERY, "");
+		}
+		
+		
 		System.out.println(">> Overrides Properties set..");
 		return overrides;
 	}
 	
 	public ComputeService getComputeService() throws Exception{
-		Iterable<Module> modules = ImmutableSet.<Module> of( new SshjSshClientModule());
+		Iterable<Module> modules = ImmutableSet.<Module> of( new SshjSshClientModule(),
+				                                             new SLF4JLoggingModule());
 		
 		ContextBuilder builder = ContextBuilder.newBuilder(this.getApi())
 			.credentials(this.getIdentity(), this.getCredential())

@@ -27,6 +27,7 @@ public class ServerInstance {
 	private static final String PROVISION_HYBRIS_SCRIPT="http://"+ REPO_SERVER +"/scripts/provision_hybris.sh";
 	private static final String PROVISION_SOLR_SCRIPT="http://" + REPO_SERVER + "/scripts/provision_solr.sh";
 	private static final String INTEGRATE_SOLR_ON_HYBRIS_SCRIPT="http://" + REPO_SERVER + "/scripts/integrate_srch_on_hybris.sh";
+	private static final String PROVISION_WEB_SCRIPT="http://" + REPO_SERVER + "/scripts/provision_web.sh";
 	
 	public ServerInstance(ComputeService computeService, NodeMetadata node, String hostname) {
 		// TODO Auto-generated constructor stub
@@ -86,6 +87,18 @@ public class ServerInstance {
 		this.executeCommand(SCRIPTS_DIR +"integrate_srch_on_hybris.sh " + srchHost + " " + srchIP + " " + defaultShop);
 		this.executeCommand("rm -r " + SCRIPTS_DIR);
 		System.out.println("<< Integration of solr completed on " + this.hostname);
+		System.out.println();
+	}
+	
+	public void provisionWeb(Properties configurationProps, String appHost, String appIp){
+		System.out.println();
+		System.out.println(">> Provisioning web on " + this.hostname);
+		this.executeCommand("mkdir "+ SCRIPTS_DIR +"; wget " + PROVISION_WEB_SCRIPT + " -P " + SCRIPTS_DIR);
+		this.executeCommand("chmod -R 775 " + SCRIPTS_DIR + "; chown -R root:root " + SCRIPTS_DIR);
+		String domainName = configurationProps.getProperty(ConfigurationKeys.domain_name.name());
+		this.executeCommand(SCRIPTS_DIR + "provision_web.sh " + appHost + " " + appIp + " " + domainName);
+		this.executeCommand("rm -r " + SCRIPTS_DIR);
+		System.out.println("<< Provision of web completed on " + this.hostname);
 		System.out.println();
 	}
 	
