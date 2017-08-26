@@ -159,6 +159,22 @@ public class Environment {
 			}
 			System.out.println("<< Server templates are created for hosts " + allHostTemplates.keySet());
 			
+			if(dbHostTemplates.isEmpty()){
+				System.out.println(ServerType.Database + " servers are not present in "  + this.project_code + "-" + this.environment_type.getCode());
+			}else{
+				
+				for(String dbHost:dbHostTemplates.keySet()){
+					configurationProps.setProperty(ConfigurationKeys.db_host_name.name(), dbHost);
+					ServerInstance dbServerInstance = dbServers.create(dbHostTemplates.get(dbHost), dbHost);
+					dbServerInstances.add(dbServerInstance);
+					configurationProps.setProperty(ConfigurationKeys.db_host_ip.name(), 
+							dbServerInstance.getNode().getPublicAddresses().iterator().next());
+					dbServerInstance.provisionMySql(configurationProps);
+				}
+				environmentMap.put(ServerType.Database, dbServerInstances);
+				System.out.println(dbHostTemplates.keySet());
+			}
+			
 			if(adminHostTemplates.isEmpty()){
 				System.out.println(ServerType.Admin + " servers are not present in "  + this.project_code + "-" + this.environment_type.getCode());
 			}else{
@@ -218,19 +234,7 @@ public class Environment {
 				environmentMap.put(ServerType.Web, webServerInstances);
 				System.out.println(webHostTemplates.keySet());
 			}
-			
-			if(dbHostTemplates.isEmpty()){
-				System.out.println(ServerType.Database + " servers are not present in "  + this.project_code + "-" + this.environment_type.getCode());
-			}else{
-				
-				for(String dbHost:dbHostTemplates.keySet()){
-					ServerInstance dbServerInstance = dbServers.create(dbHostTemplates.get(dbHost), dbHost);
-					dbServerInstances.add(dbServerInstance);
-				}
-				environmentMap.put(ServerType.Database, dbServerInstances);
-				System.out.println(dbHostTemplates.keySet());
-			}
-			
+						
 			ArrayList<ServerInstance> hybrisServerInstances = new ArrayList<ServerInstance>();
             hybrisServerInstances.addAll(adminServerInstances);
             hybrisServerInstances.addAll(appServerInstances);
@@ -280,10 +284,10 @@ public class Environment {
 								new Server(computeService, ServerType.Application, 1),
 								new Server(computeService, ServerType.Web, 1),
 								new Server(computeService, ServerType.Search, 1),
-								/*new Server(computeService, ServerType.Database, 1)*/};
-			String projectCode="tryb2b";
+								new Server(computeService, ServerType.Database, 1)};
+			String projectCode="tryb2bh62";
 			Environment environment = new Environment(provider, projectCode, EnvironmentType.Development);
-			Properties configurationProps = environment.getConfigurationProps(HybrisVersion.Hybris6_3_0, 
+			Properties configurationProps = environment.getConfigurationProps(HybrisVersion.Hybris6_2_0, 
 																			  HybrisRecipe.B2B_Accelerator, 
 																			  JavaVersion.Java8u131, 
 																			  "www." + projectCode + "demo.com");

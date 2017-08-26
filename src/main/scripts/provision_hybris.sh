@@ -4,6 +4,8 @@ HYBRIS_VERSION=$1
 HYBRIS_PACKAGE=$2
 ACCELERATOR_TYPE=$3
 CLUSTER_ID=$4
+DB_HOST_NAME=$5
+DB_HOST_IP=$6
 PACKAGES_DIR="/opt/packages/"
 SCRIPTS_DIR="/opt/scripts/"
 TEMPLATES_DIR="/opt/templates/"
@@ -13,14 +15,17 @@ SERVER_XML_URL="http://54.210.0.102/templates/server.xml"
 LOCAL_PROPERTIES_URL="http://54.210.0.102/templates/local.properties"
 HYBRIS_SCRIPT_URL="http://54.210.0.102/scripts/hybris.sh"
 HYBRIS_SERVICE_URL="http://54.210.0.102/templates/hybris.service"
+DB_DRIVER_URL="http://54.210.0.102/database-drivers/mysql-connector-java-5.1.33-bin.jar"
 HYBRIS_DIR="/opt/$HYBRIS_VERSION"
 HYBRIS_HOME_ABSOLUTE="$HYBRIS_DIR/hybris"
 HYBRIS_SYMLINK="/opt/hybris"
 HYBRIS_HOME="$HYBRIS_SYMLINK/hybris"
 HYBRIS_PLATFORM_PATH="$HYBRIS_HOME/bin/platform/"
+HYBRIS_DB_DRIVER_DIR="$HYBRIS_HOME/bin/platform/lib/dbdriver/"
 HYBRIS_INSTALLER_RECIPE_SCRIPT_FOLDER="$HYBRIS_SYMLINK/installer/"
 HYBRIS_INSTALLER_RECIPE_SCRIPT="install.sh"
 HYBRIS_INSTALLER_RECIPE_SCRIPT_PATH="$HYBRIS_INSTALLER_RECIPE_SCRIPT_FOLDER$HYBRIS_INSTALLER_RECIPE_SCRIPT"
+DB_URL="jdbc:mysql:\/\/${DB_HOST_NAME}:3306\/hybris\?useConfigs=maxPerformance\&characterEncoding=utf8"
 WorkingDirectory="\/opt\/$HYBRIS_VERSION\/hybris\/bin\/platform"
 ExecStart="\/opt\/$HYBRIS_VERSION\/hybris\/bin\/platform\/hybrisserver.sh start"
 ExecStop="\/opt\/$HYBRIS_VERSION\/hybris\/bin\/platform\/hybrisserver.sh stop"
@@ -89,10 +94,14 @@ sudo $HYBRIS_INSTALLER_RECIPE_SCRIPT_PATH -r $ACCELERATOR_TYPE; sudo su root
 echo "###################################### Installation of Reciepe ${ACCELERATOR_TYPE} completed! ######################################"
 
 # Changing configuration
+echo "${DB_HOST_IP} ${DB_HOST_NAME}" >>$HOSTS_FILE_PATH
 wget $SERVER_XML_URL -P $TEMPLATES_DIR; mv $SERVER_XML_CURRENT_PATH $SERVER_XML_DESIRED_PATH
 chmod -R 775 $SERVER_XML_DESIRED_PATH; chown -R $USERNAME:$USERGROUP $SERVER_XML_DESIRED_PATH
+wget $DB_DRIVER_URL -P $HYBRIS_DB_DRIVER_DIR
 wget $LOCAL_PROPERTIES_URL -P $TEMPLATES_DIR; mv $LOCAL_PROPERTIES_CURRENT_PATH $LOCAL_PROPERTIES_DESIRED_PATH
-echo "yms.hostname=`hostname`" >>$LOCAL_PROPERTIES_DESIRED_PATH; echo "cluster.id=${CLUSTER_ID}" >>$LOCAL_PROPERTIES_DESIRED_PATH
+sed -i "s/^\(yms\.hostname\s*=\s*\).*$/\1${HOSTNAME}/" $LOCAL_PROPERTIES_DESIRED_PATH
+sed -i "s/^\(cluster\.id\s*=\s*\).*$/\1${CLUSTER_ID}/" $LOCAL_PROPERTIES_DESIRED_PATH
+sed -i "s/^\(db\.url\s*=\s*\).*$/\1${DB_URL}/" $LOCAL_PROPERTIES_DESIRED_PATH
 chmod -R 775 $LOCAL_PROPERTIES_DESIRED_PATH; chown -R $USERNAME:$USERGROUP $LOCAL_PROPERTIES_DESIRED_PATH
 chmod -R 775 $HYBRIS_DIR; chown -R $USERNAME:$USERGROUP $HYBRIS_DIR
 rm -r $TEMPLATES_DIR; sudo su $USERNAME

@@ -50,4 +50,5 @@ mkdir -p $TEMPLATES_DIR; wget $SOLR_SERVICE_URL -P $TEMPLATES_DIR
 sed -i -e "s/working_directory/$WorkingDirectory/g" -e "s/exec_start/$ExecStart/g" -e "s/exec_stop/$ExecStop/g" $SOLR_SERVICE_CURRENT_PATH
 mv $SOLR_SERVICE_CURRENT_PATH $SOLR_SERVICE_DESIRED_PATH
 systemctl daemon-reload; systemctl enable $SOLR_SERVICE_DESIRED_PATH
-rm -r $PACKAGES_DIR
+rm -r $PACKAGES_DIR; sudo su $USERNAME
+nohup sudo service solr start

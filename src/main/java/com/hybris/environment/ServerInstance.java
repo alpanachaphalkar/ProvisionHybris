@@ -28,6 +28,7 @@ public class ServerInstance {
 	private static final String PROVISION_SOLR_SCRIPT="http://" + REPO_SERVER + "/scripts/provision_solr.sh";
 	private static final String INTEGRATE_SOLR_ON_HYBRIS_SCRIPT="http://" + REPO_SERVER + "/scripts/integrate_srch_on_hybris.sh";
 	private static final String PROVISION_WEB_SCRIPT="http://" + REPO_SERVER + "/scripts/provision_web.sh";
+	private static final String PROVISION_MYSQL_SCRIPT="http://" + REPO_SERVER + "/scripts/provision_mysql.sh";
 	
 	public ServerInstance(ComputeService computeService, NodeMetadata node, String hostname) {
 		// TODO Auto-generated constructor stub
@@ -76,6 +77,18 @@ public class ServerInstance {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	public void provisionMySql(Properties configurationProps){
+		
+		System.out.println();
+		System.out.println(">> Provisioning MySql on " + this.hostname);
+		this.executeCommand("mkdir "+ SCRIPTS_DIR +"; wget " + PROVISION_MYSQL_SCRIPT + " -P " + SCRIPTS_DIR);
+		this.executeCommand("chmod -R 775 " + SCRIPTS_DIR + "; chown -R root:root " + SCRIPTS_DIR);
+		this.executeCommand(SCRIPTS_DIR + "provision_mysql.sh");
+		this.executeCommand("rm -r " + SCRIPTS_DIR);
+		System.out.println("<< Provision of MySql completed on " + this.hostname);
+		System.out.println();
 	}
 	
 	public void integrateSolrOnHybris(Properties configurationProps, String srchHost, String srchIP){
@@ -136,12 +149,14 @@ public class ServerInstance {
 		String hybrisPackage = configurationProps.getProperty(ConfigurationKeys.hybris_package.name());
 		String acceleratorType = configurationProps.getProperty(ConfigurationKeys.hybris_recipe.name());
 		String clusterId = configurationProps.getProperty(ConfigurationKeys.cluster_id.name());
-		
+		String dbHostName = configurationProps.getProperty(ConfigurationKeys.db_host_name.name());
+		String dbHostIp = configurationProps.getProperty(ConfigurationKeys.db_host_ip.name());
 		System.out.println(">> Hybris Version " + hybrisVersion + " is selected.");
 		System.out.println(">> Hybris Recipe " + acceleratorType + " is selected");
 		
 		this.executeCommand("source " + SCRIPTS_DIR + "provision_hybris.sh " + hybrisVersion + " " + hybrisPackage
-																		   + " " + acceleratorType + " " + clusterId);
+																		   + " " + acceleratorType + " " + clusterId
+																		   + " " + dbHostName + " " + dbHostIp);
 		configurationProps.remove(ConfigurationKeys.cluster_id.name());
 		System.out.println("<< Provision of hybris completed on " + this.hostname);
 		System.out.println();

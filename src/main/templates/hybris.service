@@ -3,10 +3,10 @@ Description=hybris
 After=network.target
 
 [Service]
-WorkingDirectory=working_directory
+WorkingDirectory=
 Type=oneshot
-ExecStart=exec_start
-ExecStop=exec_stop
+ExecStart=
+ExecStop=
 RemainAfterExit=yes
 User=hybris
 Group=hybris
