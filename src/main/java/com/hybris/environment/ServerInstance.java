@@ -24,11 +24,13 @@ public class ServerInstance {
 	private static final String REPO_SERVER="54.210.0.102";
 	private static final String SCRIPTS_DIR="/opt/scripts/";
 	private static final String PROVISION_JAVA_SCRIPT="http://" + REPO_SERVER + "/scripts/provision_java.sh";
-	private static final String PROVISION_HYBRIS_SCRIPT="http://"+ REPO_SERVER +"/scripts/provision_hybris.sh";
+	private static final String PROVISION_HYBRIS_SCRIPT="http://" + REPO_SERVER + "/scripts/provision_hybris.sh";
+	private static final String INITIALIZE_DB_SCRIPT="http://" + REPO_SERVER + "/scripts/initialize_db.sh";
 	private static final String PROVISION_SOLR_SCRIPT="http://" + REPO_SERVER + "/scripts/provision_solr.sh";
 	private static final String INTEGRATE_SOLR_ON_HYBRIS_SCRIPT="http://" + REPO_SERVER + "/scripts/integrate_srch_on_hybris.sh";
 	private static final String PROVISION_WEB_SCRIPT="http://" + REPO_SERVER + "/scripts/provision_web.sh";
 	private static final String PROVISION_MYSQL_SCRIPT="http://" + REPO_SERVER + "/scripts/provision_mysql.sh";
+	private static final String SETUP_NFS_SERVER_SCRIPT="http://" + REPO_SERVER + "/scripts/setup_nfs_server.sh";
 	
 	public ServerInstance(ComputeService computeService, NodeMetadata node, String hostname) {
 		// TODO Auto-generated constructor stub
@@ -79,6 +81,28 @@ public class ServerInstance {
 		}
 	}
 	
+	public void setupNfsServer(Properties configurationProps){
+		System.out.println();
+		System.out.println(">> Setting NFS server on " + this.hostname);
+		this.executeCommand("wget " + SETUP_NFS_SERVER_SCRIPT + " -P " + SCRIPTS_DIR);
+		this.executeCommand("chmod -R 775 " + SCRIPTS_DIR + "; chown -R root:root " + SCRIPTS_DIR);
+		String appHostIp = configurationProps.getProperty(ConfigurationKeys.app_host_ip.name());
+		this.executeCommand(SCRIPTS_DIR + "setup_nfs_server.sh " + appHostIp);
+		System.out.println("<< NFS server is set on " + this.hostname);
+		System.out.println();
+	}
+	
+	public void setupNfsClient(Properties configurationProps){
+		System.out.println();
+		System.out.println(">> Setting NFS Client on " + this.hostname);
+		String adminHostIp = configurationProps.getProperty(ConfigurationKeys.adm_host_ip.name());
+		this.executeCommand("apt-get install -y nfs-common; apt-get update");
+		this.executeCommand("mkdir -p /mnt/nfs/var/nfs");
+		this.executeCommand("mount " + adminHostIp + ":/var/nfs /mnt/nfs/var/nfs/; df -h");
+		System.out.println("<< NFS Client is set on " + this.hostname);
+		System.out.println();
+	}
+	
 	public void provisionMySql(Properties configurationProps){
 		
 		System.out.println();
@@ -91,11 +115,13 @@ public class ServerInstance {
 		System.out.println();
 	}
 	
-	public void integrateSolrOnHybris(Properties configurationProps, String srchHost, String srchIP){
+	public void integrateSolrOnHybris(Properties configurationProps){
 		System.out.println();
 		System.out.println(">> Integrating solr on " + this.hostname);
 		this.executeCommand("wget " + INTEGRATE_SOLR_ON_HYBRIS_SCRIPT + " -P " + SCRIPTS_DIR);
 		this.executeCommand("chmod -R 775 " + SCRIPTS_DIR + "; chown -R root:root " + SCRIPTS_DIR);
+		String srchHost = configurationProps.getProperty(ConfigurationKeys.srch_host_name.name());
+		String srchIP = configurationProps.getProperty(ConfigurationKeys.srch_host_ip.name());
 		String defaultShop = configurationProps.getProperty(ConfigurationKeys.default_shop.name());
 		this.executeCommand(SCRIPTS_DIR +"integrate_srch_on_hybris.sh " + srchHost + " " + srchIP + " " + defaultShop);
 		this.executeCommand("rm -r " + SCRIPTS_DIR);
@@ -159,6 +185,17 @@ public class ServerInstance {
 																		   + " " + dbHostName + " " + dbHostIp);
 		configurationProps.remove(ConfigurationKeys.cluster_id.name());
 		System.out.println("<< Provision of hybris completed on " + this.hostname);
+		System.out.println();
+	}
+	
+	public void initializeDB(Properties configurationProps){
+		System.out.println();
+		System.out.println(">> Initializing DB on " + this.hostname);
+		this.executeCommand("wget " + INITIALIZE_DB_SCRIPT + " -P " + SCRIPTS_DIR);
+		this.executeCommand("chmod -R 775 " + SCRIPTS_DIR + "; chown -R root:root " + SCRIPTS_DIR);
+		String hybrisVersion = configurationProps.getProperty(ConfigurationKeys.hybris_version.name());
+		this.executeCommand("source " + SCRIPTS_DIR + "initialize_db.sh " + hybrisVersion);
+		System.out.println("<< Initialization of DB completed on " + this.hostname);
 		System.out.println();
 	}
 	

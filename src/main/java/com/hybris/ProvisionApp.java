@@ -1,15 +1,10 @@
 package com.hybris;
 
-import java.io.IOException;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.jclouds.compute.ComputeService;
-import org.jclouds.compute.domain.Hardware;
 import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.domain.OsFamily;
-import org.jclouds.domain.Location;
-import org.jclouds.scriptbuilder.ScriptBuilder;
 
 import com.hybris.computeservice.CloudService;
 import com.hybris.provider.Cpu;

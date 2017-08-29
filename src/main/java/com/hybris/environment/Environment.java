@@ -1,6 +1,5 @@
 package com.hybris.environment;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
@@ -17,16 +16,50 @@ import com.hybris.provider.Provider;
 
 public class Environment {
 	
-	public String project_code;
-	public EnvironmentType environment_type;
-	public Provider provider;
-	public static final String SERVER_DOMAIN=".hybrishosting.com";
+	private String projectCode;
+	private EnvironmentType environmentType;
+	private Provider provider;
+	public static final String SERVER_DOMAIN = ".hybrishosting.com";
 	
 	public Environment(Provider provider, String projectCode, EnvironmentType environmentType) {
 		// TODO Auto-generated constructor stub
-		this.project_code = projectCode;
-		this.environment_type = environmentType;
+		this.setProvider(provider);
+		this.setProjectCode(projectCode);
+		this.setEnvironmentType(environmentType);
+	}
+
+	public Provider getProvider() {
+		return provider;
+	}
+
+	public void setProvider(Provider provider) {
 		this.provider = provider;
+	}
+
+	public String getProjectCode() {
+		return projectCode;
+	}
+
+	public void setProjectCode(String project_code) {
+		if(Character.isDigit(project_code.charAt(0))){
+			System.out.println("Project code should start from a letter.");
+			this.projectCode=null;
+			System.exit(0);
+		}else if(project_code.matches("^[a-zA-Z0-9]*$")){
+			this.projectCode = project_code.toLowerCase();
+		}else{
+			System.out.println("Special charachters are not accepteble for project code.");
+			this.projectCode=null;
+			System.exit(0);
+		}
+	}
+
+	public EnvironmentType getEnvironmentType() {
+		return environmentType;
+	}
+
+	public void setEnvironmentType(EnvironmentType environment_type) {
+		this.environmentType = environment_type;
 	}
 	
 	public Properties getConfigurationProps(HybrisVersion hybrisVersion, HybrisRecipe hybrisRecipe, JavaVersion javaVersion, String domainName){
@@ -74,193 +107,129 @@ public class Environment {
 		return clusterId;
 	}
 	
-	private HashMap<String, Template> getHostTemplates(Server server){
-		HashMap<String, Template> hostTemplates = new HashMap<String, Template>();
-		
-		int serverCount = server.getSeverCount();
+	public String getHostName(Server server){
+		String hostname = "";
 		ServerType serverType = server.getServerType();
-		Template serverTemplate = server.getTemplate(this.provider, this.environment_type); 
-		
-		if(serverCount <= 0 || serverCount > 9){
-			System.out.println("Please enter no. of " + serverType + " servers greater than 0 and less than 9");
-			return hostTemplates;
-		}
-		
-		for(int i=1; i<=serverCount; i++){
-			hostTemplates.put(project_code + "-" + environment_type.getCode() + "-" + provider.getCode() + "-" 
-							+ serverType.getCode() + "-00" + i + SERVER_DOMAIN
-							, serverTemplate);
-		}
-		
-		return hostTemplates;
+		hostname = this.projectCode + "-" + this.environmentType.getCode() + "-" + this.provider.getCode() + "-" 
+				+ serverType.getCode() + "-001" + SERVER_DOMAIN;
+		return hostname;
 	}
 	
-	public HashMap<ServerType, ArrayList<ServerInstance>> create(ComputeService computeService, Server[] servers, Properties configurationProps){
+	public HashMap<ServerType, ServerInstance> create(ComputeService computeService, Server[] servers, Properties configurationProps){
 		
-		HashMap<ServerType, ArrayList<ServerInstance>> environmentMap = new HashMap<ServerType, ArrayList<ServerInstance>>();
+		HashMap<ServerType, ServerInstance> environmentMap = new HashMap<ServerType, ServerInstance>();
 		
 		if(servers.length == 0){
 			System.out.println("Server list is empty!");
 			return environmentMap;
 		}
-		System.out.println(">> Creating server templates ..");
-		Server adminServers = null; ArrayList<ServerInstance> adminServerInstances = new ArrayList<ServerInstance>();
-		Server appServers = null; ArrayList<ServerInstance> appServerInstances = new ArrayList<ServerInstance>();
-		Server webServers = null; ArrayList<ServerInstance> webServerInstances = new ArrayList<ServerInstance>();
-		Server searchServers = null; ArrayList<ServerInstance> searchServerInstances = new ArrayList<ServerInstance>();
-		Server dbServers = null; ArrayList<ServerInstance> dbServerInstances = new ArrayList<ServerInstance>();
-		
-		HashMap<String, Template> adminHostTemplates = new HashMap<String, Template>(); 
-		HashMap<String, Template> appHostTemplates = new HashMap<String, Template>(); 
-		HashMap<String, Template> webHostTemplates = new HashMap<String, Template>(); 
-		HashMap<String, Template> searchHostTemplates = new HashMap<String, Template>(); 
-		HashMap<String, Template> dbHostTemplates = new HashMap<String, Template>(); 
-		HashMap<String, Template> allHostTemplates = new HashMap<String, Template>();
+		System.out.println(">> Creating server instances ..");
+		ServerInstance hybrisServerInstance = null;
 		
 		try {
 			
 			for(Server server:servers){
 				
-				if(server.getSeverCount()<0 || server.getSeverCount()>9){
-					System.out.println("Please enter valid count for number of servers.");
-					return environmentMap;
-				}
-				
+				Template template = server.getTemplate(this.getProvider(), this.getEnvironmentType());
+				String hostname = this.getHostName(server);
+				ServerInstance serverInstance = server.create(template, hostname);
+				environmentMap.put(server.getServerType(), serverInstance);
 				switch (server.getServerType()) {
-					case Admin:
-						adminHostTemplates = this.getHostTemplates(server);
-						allHostTemplates.putAll(adminHostTemplates);
-						adminServers = server;
-						break;
-					case Application:
-						appHostTemplates = this.getHostTemplates(server);
-						allHostTemplates.putAll(appHostTemplates);
-						appServers = server;
-						break;
-					case Web:
-						webHostTemplates = this.getHostTemplates(server);
-						allHostTemplates.putAll(webHostTemplates);
-						webServers = server;
-						break;
-					case Search:
-						searchHostTemplates = this.getHostTemplates(server);
-						allHostTemplates.putAll(searchHostTemplates);
-						searchServers = server;
-						break;
-					case Database:
-						dbHostTemplates = this.getHostTemplates(server);
-						allHostTemplates.putAll(dbHostTemplates);
-						dbServers = server;
-						break;
-					default:
-						break;
+				case Admin:
+					configurationProps.setProperty(ConfigurationKeys.adm_host_name.name(), hostname);
+					configurationProps.setProperty(ConfigurationKeys.adm_host_ip.name(), serverInstance.getNode().getPublicAddresses()
+																												.iterator().next());
+					break;
+				case Application:
+					configurationProps.setProperty(ConfigurationKeys.app_host_name.name(), hostname);
+					configurationProps.setProperty(ConfigurationKeys.app_host_ip.name(), serverInstance.getNode().getPublicAddresses()
+																												.iterator().next());
+					break;
+				case Database:
+					configurationProps.setProperty(ConfigurationKeys.db_host_name.name(), hostname);
+					configurationProps.setProperty(ConfigurationKeys.db_host_ip.name(), serverInstance.getNode().getPublicAddresses()
+																												.iterator().next());
+					break;
+				case Search:
+					configurationProps.setProperty(ConfigurationKeys.srch_host_name.name(), hostname);
+					configurationProps.setProperty(ConfigurationKeys.srch_host_ip.name(), serverInstance.getNode().getPublicAddresses()
+																												.iterator().next());
+					break;
+				case Web:
+					configurationProps.setProperty(ConfigurationKeys.web_host_name.name(), hostname);
+					configurationProps.setProperty(ConfigurationKeys.web_host_ip.name(), serverInstance.getNode().getPublicAddresses()
+																												.iterator().next());
+					break;
+				default:
+					break;
 				}
 				
 			}
-			System.out.println("<< Server templates are created for hosts " + allHostTemplates.keySet());
 			
-			if(dbHostTemplates.isEmpty()){
-				System.out.println(ServerType.Database + " servers are not present in "  + this.project_code + "-" + this.environment_type.getCode());
-			}else{
-				
-				for(String dbHost:dbHostTemplates.keySet()){
-					configurationProps.setProperty(ConfigurationKeys.db_host_name.name(), dbHost);
-					ServerInstance dbServerInstance = dbServers.create(dbHostTemplates.get(dbHost), dbHost);
-					dbServerInstances.add(dbServerInstance);
-					configurationProps.setProperty(ConfigurationKeys.db_host_ip.name(), 
-							dbServerInstance.getNode().getPublicAddresses().iterator().next());
-					dbServerInstance.provisionMySql(configurationProps);
-				}
-				environmentMap.put(ServerType.Database, dbServerInstances);
-				System.out.println(dbHostTemplates.keySet());
+			System.out.println("<< Server Instances are created for " + this.projectCode + "-" + this.getEnvironmentType().getCode());
+			
+			if(environmentMap.keySet().contains(ServerType.Database)){
+				ServerInstance dbServerInstance = environmentMap.get(ServerType.Database);
+				dbServerInstance.provisionMySql(configurationProps);
 			}
 			
-			if(adminHostTemplates.isEmpty()){
-				System.out.println(ServerType.Admin + " servers are not present in "  + this.project_code + "-" + this.environment_type.getCode());
-			}else{
-				
-				for(String adminHost:adminHostTemplates.keySet()){
-
-					ServerInstance adminServerInstance = adminServers.create(adminHostTemplates.get(adminHost), adminHost);
-					adminServerInstance.provisionJava(configurationProps);
-					adminServerInstances.add(adminServerInstance);
-					String adminClusterId = this.getClusterId(adminHost);
-					configurationProps.setProperty(ConfigurationKeys.cluster_id.name(), adminClusterId);
-					adminServerInstance.provisionHybris(configurationProps);
+			if(environmentMap.keySet().contains(ServerType.Admin)){
+				ServerInstance adminServerInstance = environmentMap.get(ServerType.Admin);
+				adminServerInstance.provisionJava(configurationProps);
+				String adminClusterId = this.getClusterId(adminServerInstance.getHostname());
+				configurationProps.setProperty(ConfigurationKeys.cluster_id.name(), adminClusterId);
+				adminServerInstance.provisionHybris(configurationProps);
+				adminServerInstance.initializeDB(configurationProps);
+				adminServerInstance.setupNfsServer(configurationProps);
+				hybrisServerInstance = adminServerInstance;
+			}
+			
+			if(environmentMap.keySet().contains(ServerType.Application)){
+				ServerInstance appServerInstance = environmentMap.get(ServerType.Application);
+				appServerInstance.provisionJava(configurationProps);
+				String appClusterId = this.getClusterId(appServerInstance.getHostname());
+				configurationProps.setProperty(ConfigurationKeys.cluster_id.name(), appClusterId);
+				appServerInstance.provisionHybris(configurationProps);
+				if(hybrisServerInstance.equals(null)){
+					appServerInstance.initializeDB(configurationProps);
+					hybrisServerInstance = appServerInstance;
+				}else{
 					
+					appServerInstance.setupNfsClient(configurationProps);
+					String hybrisVersion = configurationProps.getProperty(ConfigurationKeys.hybris_version.name());
+					String hybrisHome = "/opt/" + hybrisVersion + "/hybris";
+					hybrisServerInstance.executeCommand("cp -r " + hybrisHome + "/data/media/sys_master /var/nfs");
+					appServerInstance.executeCommand("cd /mnt/nfs/var/nfs/; mv /mnt/nfs/var/nfs/sys_master/* " + hybrisHome + "/data/media");
+					appServerInstance.executeCommand("chmod -R 775 " + hybrisHome + "; chown -R hybris:hybris " + hybrisHome);
 				}
-				environmentMap.put(ServerType.Admin, adminServerInstances);
 			}
 			
-			if(appHostTemplates.isEmpty()){
-				System.out.println(ServerType.Application + " servers are not present in "  + this.project_code + "-" + this.environment_type.getCode());
-			}else{
-				
-				for(String appHost:appHostTemplates.keySet()){
-
-					ServerInstance appServerInstance = appServers.create(appHostTemplates.get(appHost), appHost);
-					appServerInstance.provisionJava(configurationProps);
-					appServerInstances.add(appServerInstance);
-					String appClusterId = this.getClusterId(appHost);
-					configurationProps.setProperty(ConfigurationKeys.cluster_id.name(), appClusterId);
-					appServerInstance.provisionHybris(configurationProps);
-					
-				}
-				environmentMap.put(ServerType.Application, appServerInstances);
+			if(environmentMap.keySet().contains(ServerType.Search)){
+				ServerInstance searchServerInstance = environmentMap.get(ServerType.Search);
+				searchServerInstance.provisionJava(configurationProps);
+				searchServerInstance.provisionSolr(configurationProps);
+				hybrisServerInstance.integrateSolrOnHybris(configurationProps);
 			}
 			
-			if(searchHostTemplates.isEmpty()){
-				System.out.println(ServerType.Search + " servers are not present in "  + this.project_code + "-" + this.environment_type.getCode());
-			}else{
-				
-				for(String searchHost:searchHostTemplates.keySet()){
-					ServerInstance searchServerInstance = searchServers.create(searchHostTemplates.get(searchHost), searchHost);
-					System.out.println();
-					searchServerInstance.provisionJava(configurationProps);
-					searchServerInstances.add(searchServerInstance);
-					searchServerInstance.provisionSolr(configurationProps);
-				}
-				environmentMap.put(ServerType.Search, searchServerInstances);
-				System.out.println(searchHostTemplates.keySet());
+			
+			if(environmentMap.keySet().contains(ServerType.Web)){
+				ServerInstance webServerInstance = environmentMap.get(ServerType.Web);
+				String hybrisHost = hybrisServerInstance.getHostname();
+				String hybrisIP = hybrisServerInstance.getNode().getPublicAddresses().iterator().next();
+				webServerInstance.provisionWeb(configurationProps, hybrisHost, hybrisIP);
 			}
 			
-			if(webHostTemplates.isEmpty()){
-				System.out.println(ServerType.Web + " servers are not present in "  + this.project_code + "-" + this.environment_type.getCode());
+			if(environmentMap.keySet().contains(ServerType.Admin) && environmentMap.keySet().contains(ServerType.Application)){
+				ServerInstance adminServerInstance = environmentMap.get(ServerType.Admin);
+				ServerInstance appServerInstance = environmentMap.get(ServerType.Application);
+				adminServerInstance.executeCommand("sudo su hybris; nohup sudo service hybris start");
+				appServerInstance.executeCommand("sudo su hybris; nohup sudo service hybris start");
 			}else{
-				for(String webHost:webHostTemplates.keySet()){
-					ServerInstance webServerInstance = webServers.create(webHostTemplates.get(webHost), webHost);
-					webServerInstances.add(webServerInstance);
-				}
-				environmentMap.put(ServerType.Web, webServerInstances);
-				System.out.println(webHostTemplates.keySet());
+				hybrisServerInstance.integrateSolrOnHybris(configurationProps);
+				hybrisServerInstance.executeCommand("sudo su hybris; nohup sudo service hybris start");
 			}
-						
-			ArrayList<ServerInstance> hybrisServerInstances = new ArrayList<ServerInstance>();
-            hybrisServerInstances.addAll(adminServerInstances);
-            hybrisServerInstances.addAll(appServerInstances);
-            if(hybrisServerInstances.isEmpty() || searchServerInstances.isEmpty()){
-            	System.out.println("Since there are no " + ServerType.Admin + ", " + ServerType.Application + ", "+ ServerType.Search + 
-            						" servers in " + this.project_code + "-" + this.environment_type.getCode());
-            	System.out.println("Integration of Solr on Hybris can not be performed");
-            }else{
-            	String srchHost = searchServerInstances.get(0).getHostname();
-            	String srchIP = searchServerInstances.get(0).getNode().getPublicAddresses().iterator().next();
-            	for(ServerInstance hybrisServerInstance:hybrisServerInstances){
-                	hybrisServerInstance.integrateSolrOnHybris(configurationProps, srchHost, srchIP);
-                }
-            }
-            
-            if(hybrisServerInstances.isEmpty() || webServerInstances.isEmpty()){
-            	System.out.println("Since there are no " + ServerType.Admin + ", " + ServerType.Application + ", "+ ServerType.Web + 
-						" servers in " + this.project_code + "-" + this.environment_type.getCode());
-            	System.out.println("Integration of Hybris on Web can not be performed");
-            }else{
-            	String hybrisHost = hybrisServerInstances.get(0).getHostname();
-            	String hybrisIP = hybrisServerInstances.get(0).getNode().getPublicAddresses().iterator().next();
-            	for(ServerInstance webServerInstance:webServerInstances){
-            		webServerInstance.provisionWeb(configurationProps, hybrisHost, hybrisIP);
-            	}
-            }
+			
+			System.out.println(configurationProps);
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -280,18 +249,19 @@ public class Environment {
 			
 			Provider provider = Provider.AmazonWebService;
 			ComputeService computeService = provider.getComputeService();
-			Server[] servers = {/*new Server(computeService, ServerType.Admin, 1),*/
-								new Server(computeService, ServerType.Application, 1),
-								new Server(computeService, ServerType.Web, 1),
-								new Server(computeService, ServerType.Search, 1),
-								new Server(computeService, ServerType.Database, 1)};
-			String projectCode="tryb2bh62";
+			Server[] servers = {new Server(computeService, ServerType.Admin),
+								new Server(computeService, ServerType.Application),
+								new Server(computeService, ServerType.Web),
+								new Server(computeService, ServerType.Search),
+								new Server(computeService, ServerType.Database)};
+			String projectCode="hybris62b2c";
 			Environment environment = new Environment(provider, projectCode, EnvironmentType.Development);
 			Properties configurationProps = environment.getConfigurationProps(HybrisVersion.Hybris6_2_0, 
-																			  HybrisRecipe.B2B_Accelerator, 
+																			  HybrisRecipe.B2C_Accelerator, 
 																			  JavaVersion.Java8u131, 
-																			  "www." + projectCode + "demo.com");
+																			  "www." + projectCode + provider.getCode() + "demo.com");
 			environment.create(computeService, servers, configurationProps);
+			System.out.println(environment.getHostName(servers[4]));
 			computeService.getContext().close();
 			
 		}catch(Exception e){

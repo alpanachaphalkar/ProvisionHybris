@@ -5,7 +5,6 @@ import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.domain.OsFamily;
 
 import com.hybris.provider.Cpu;
-import com.hybris.provider.DiskSize;
 import com.hybris.provider.Region;
 
 public interface CloudServiceAction {

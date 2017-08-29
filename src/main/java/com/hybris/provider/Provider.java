@@ -9,12 +9,10 @@ import java.util.concurrent.TimeUnit;
 
 import org.jclouds.ContextBuilder;
 import org.jclouds.aws.ec2.reference.AWSEC2Constants;
-import org.jclouds.aws.reference.AWSConstants;
 import org.jclouds.compute.ComputeService;
 import org.jclouds.compute.ComputeServiceContext;
 import org.jclouds.compute.config.ComputeServiceProperties;
 import org.jclouds.domain.Credentials;
-import org.jclouds.enterprise.config.EnterpriseConfigurationModule;
 import org.jclouds.googlecloud.GoogleCredentialsFromJson;
 import org.jclouds.logging.slf4j.config.SLF4JLoggingModule;
 import org.jclouds.sshj.config.SshjSshClientModule;

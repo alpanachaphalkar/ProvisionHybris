@@ -20,14 +20,12 @@ public class Server {
 
 	private ServerType serverType;
 	private ComputeService computeservice;
-	private int severCount;
 	public static final String SERVER_DOMAIN=".hybrishosting.com";
 	
-	public Server(ComputeService computeService, ServerType type, int count) {
+	public Server(ComputeService computeService, ServerType type) {
 		// TODO Auto-generated constructor stub
 		this.setComputeservice(computeService);
 		this.setServerType(type);
-		this.setSeverCount(count);
 	}
 	
 	public ServerType getServerType() {
@@ -35,12 +33,6 @@ public class Server {
 	}
 	public void setServerType(ServerType serverType) {
 		this.serverType = serverType;
-	}
-	public int getSeverCount() {
-		return severCount;
-	}
-	public void setSeverCount(int severCount) {
-		this.severCount = severCount;
 	}
 
 	public ComputeService getComputeservice() {
@@ -60,7 +52,6 @@ public class Server {
 			case AmazonWebService:
 				
 				String awsHardwareId = "t2.large";
-				//String awsImageId = "us-east-1/ami-841f46ff";
 				String awsImageId = "us-east-1/ami-cd0f5cb6";
 				String awsSubnetId = "subnet-13d3fb5b";
 				String awsSecuritygroupId = "sg-8651acf6";
@@ -79,15 +70,18 @@ public class Server {
 			case GoogleCloudProvider:
 				String pathToKey = "C:\\cygwin64\\home\\D066624\\.ssh\\id_rsa.pub";
 				String GcePublicKey = Files.toString(new File(pathToKey), Charsets.UTF_8);
-				String gceHardwareId = "https://www.googleapis.com/compute/v1/projects/provisionhybris/zones/us-east1-b/machineTypes/n1-standard-1";
+				String gceHardwareId = "";
+				if(this.serverType.equals(ServerType.Admin) || this.serverType.equals(ServerType.Application)){
+					gceHardwareId = "https://www.googleapis.com/compute/v1/projects/provisionhybris/zones/us-east1-b/machineTypes/n1-standard-2";
+				}else{
+					gceHardwareId = "https://www.googleapis.com/compute/v1/projects/provisionhybris/zones/us-east1-b/machineTypes/n1-standard-1";
+				}
 				String gceImageId = "https://www.googleapis.com/compute/v1/projects/provisionhybris/global/images/hybris-dev-image";
 				String gceSecurityGroupId = "demo-hybris-firewall";
 				ArrayList<String> tags = new ArrayList<String>();
 				tags.add(gceSecurityGroupId);
 				TemplateBuilder gceTemplateBuilder = this.computeservice.templateBuilder().locationId(provider.getRegion().getID())
 																							.os64Bit(true)
-																							/*.minCores(2.0)
-																							.minRam(8 * 1024)*/
 																							.imageId(gceImageId)
 																							.hardwareId(gceHardwareId);
 				template = gceTemplateBuilder.build();
