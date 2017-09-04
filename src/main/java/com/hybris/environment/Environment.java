@@ -254,14 +254,13 @@ public class Environment {
 								new Server(computeService, ServerType.Web),
 								new Server(computeService, ServerType.Search),
 								new Server(computeService, ServerType.Database)};
-			String projectCode="hybris62b2c";
+			String projectCode="hybris62b2b";
 			Environment environment = new Environment(provider, projectCode, EnvironmentType.Development);
 			Properties configurationProps = environment.getConfigurationProps(HybrisVersion.Hybris6_2_0, 
-																			  HybrisRecipe.B2C_Accelerator, 
+																			  HybrisRecipe.B2B_Accelerator, 
 																			  JavaVersion.Java8u131, 
 																			  "www." + projectCode + provider.getCode() + "demo.com");
 			environment.create(computeService, servers, configurationProps);
-			System.out.println(environment.getHostName(servers[4]));
 			computeService.getContext().close();
 			
 		}catch(Exception e){
