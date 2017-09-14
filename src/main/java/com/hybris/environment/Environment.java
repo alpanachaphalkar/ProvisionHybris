@@ -129,7 +129,6 @@ public class Environment {
 		try {
 			
 			for(Server server:servers){
-				
 				Template template = server.getTemplate(this.getProvider(), this.getEnvironmentType());
 				String hostname = this.getHostName(server);
 				ServerInstance serverInstance = server.create(template, hostname);
@@ -137,28 +136,33 @@ public class Environment {
 				switch (server.getServerType()) {
 				case Admin:
 					configurationProps.setProperty(ConfigurationKeys.adm_host_name.name(), hostname);
-					configurationProps.setProperty(ConfigurationKeys.adm_host_ip.name(), serverInstance.getNode().getPublicAddresses()
-																												.iterator().next());
+					configurationProps.setProperty(ConfigurationKeys.adm_host_ip.name(), computeService
+							                                                               .getNodeMetadata(serverInstance.getNodeId())
+							                                                               .getPublicAddresses().iterator().next());
 					break;
 				case Application:
 					configurationProps.setProperty(ConfigurationKeys.app_host_name.name(), hostname);
-					configurationProps.setProperty(ConfigurationKeys.app_host_ip.name(), serverInstance.getNode().getPublicAddresses()
-																												.iterator().next());
+					configurationProps.setProperty(ConfigurationKeys.app_host_ip.name(), computeService
+                            																.getNodeMetadata(serverInstance.getNodeId())
+                            																.getPublicAddresses().iterator().next());
 					break;
 				case Database:
 					configurationProps.setProperty(ConfigurationKeys.db_host_name.name(), hostname);
-					configurationProps.setProperty(ConfigurationKeys.db_host_ip.name(), serverInstance.getNode().getPublicAddresses()
-																												.iterator().next());
+					configurationProps.setProperty(ConfigurationKeys.db_host_ip.name(), computeService
+																							.getNodeMetadata(serverInstance.getNodeId())
+																							.getPublicAddresses().iterator().next());
 					break;
 				case Search:
 					configurationProps.setProperty(ConfigurationKeys.srch_host_name.name(), hostname);
-					configurationProps.setProperty(ConfigurationKeys.srch_host_ip.name(), serverInstance.getNode().getPublicAddresses()
-																												.iterator().next());
+					configurationProps.setProperty(ConfigurationKeys.srch_host_ip.name(), computeService
+																							.getNodeMetadata(serverInstance.getNodeId())
+																							.getPublicAddresses().iterator().next());
 					break;
 				case Web:
 					configurationProps.setProperty(ConfigurationKeys.web_host_name.name(), hostname);
-					configurationProps.setProperty(ConfigurationKeys.web_host_ip.name(), serverInstance.getNode().getPublicAddresses()
-																												.iterator().next());
+					configurationProps.setProperty(ConfigurationKeys.web_host_ip.name(), computeService
+																							.getNodeMetadata(serverInstance.getNodeId())
+																							.getPublicAddresses().iterator().next());
 					break;
 				default:
 					break;
@@ -215,7 +219,7 @@ public class Environment {
 			if(environmentMap.keySet().contains(ServerType.Web)){
 				ServerInstance webServerInstance = environmentMap.get(ServerType.Web);
 				String hybrisHost = hybrisServerInstance.getHostname();
-				String hybrisIP = hybrisServerInstance.getNode().getPublicAddresses().iterator().next();
+				String hybrisIP = computeService.getNodeMetadata(hybrisServerInstance.getNodeId()).getPublicAddresses().iterator().next();
 				webServerInstance.provisionWeb(configurationProps, hybrisHost, hybrisIP);
 			}
 			
@@ -254,9 +258,9 @@ public class Environment {
 								new Server(computeService, ServerType.Web),
 								new Server(computeService, ServerType.Search),
 								new Server(computeService, ServerType.Database)};
-			String projectCode="hybris62b2b";
+			String projectCode="demoproject";
 			Environment environment = new Environment(provider, projectCode, EnvironmentType.Development);
-			Properties configurationProps = environment.getConfigurationProps(HybrisVersion.Hybris6_2_0, 
+			Properties configurationProps = environment.getConfigurationProps(HybrisVersion.Hybris6_3_0, 
 																			  HybrisRecipe.B2B_Accelerator, 
 																			  JavaVersion.Java8u131, 
 																			  "www." + projectCode + provider.getCode() + "demo.com");

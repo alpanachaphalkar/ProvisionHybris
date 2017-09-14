@@ -2,7 +2,7 @@ package com.hybris;
 
 public enum JavaVersion {
 	
-	Java8u131("jdk-8u131-linux-x64.tar.gz", "java-8-oracle");
+	Java8u131("jdk-8u131-linux-x64.tgz", "java-8-oracle");
 	
 	private String packageName;
 	private String javaVersion;

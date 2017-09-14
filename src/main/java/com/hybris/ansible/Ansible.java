@@ -14,18 +14,18 @@ import com.hybris.provider.Provider;
 
 public class Ansible {
 	
-	private static final String INSTANCE_NAME="Demo-Ansible-Host";
-	private static final String HOSTNAME="yms-d-aws-ansible-001.hybrishosting.com";
-	private static final String PUBLIC_IP="52.90.236.133";
-	private static final String PRIVATE_IP="10.10.1.100";
+	private static final String INSTANCE_NAME="demo-ansible-server";
+	private static final String HOSTNAME="yms-demo-aws-ansible-001.hybrishosting.com";
+	private static final String PUBLIC_IP="54.84.166.214";
+	private static final String PRIVATE_IP="10.10.1.21";
 	private static final Provider PROVIDER = Provider.AmazonWebService;
-	private static final String NODE_ID="us-east-1/i-037b5e14acd452603";
+	private static final String NODE_ID="us-east-1/i-0cec1dee114ec98fe";
 	private ComputeService computeService;
 	
-	public static final String DEFAULT_ANSIBLE_DIR="/opt/ansible-demo/";
+	public static final String DEFAULT_ANSIBLE_DIR="/opt/ansible/";
 	public static final String DEFAULT_INVENTORY_DIR = DEFAULT_ANSIBLE_DIR + "inventory/";
 	public static final String DEFAULT_PLABOOKS_DIR = DEFAULT_ANSIBLE_DIR + "playbooks/";
-	public static final String DEFAULT_ROLES_DIR = DEFAULT_ANSIBLE_DIR + "roles/";
+	public static final String DEFAULT_ROLES_DIR = DEFAULT_PLABOOKS_DIR + "roles/";
 	
 	public Ansible() {
 		// TODO Auto-generated constructor stub

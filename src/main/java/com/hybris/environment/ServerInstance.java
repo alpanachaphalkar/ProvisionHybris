@@ -6,7 +6,6 @@ import java.util.Properties;
 
 import org.jclouds.compute.ComputeService;
 import org.jclouds.compute.domain.ExecResponse;
-import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.options.TemplateOptions;
 import org.jclouds.domain.LoginCredentials;
 import org.jclouds.scriptbuilder.domain.Statements;
@@ -17,7 +16,8 @@ import com.hybris.ConfigurationKeys;
 
 public class ServerInstance {
 
-	private NodeMetadata node;
+	//private NodeMetadata node;
+	private String nodeId;
 	private ComputeService computeService;
 	private String hostname;
 	public static final String SERVER_DOMAIN=".hybrishosting.com";
@@ -32,10 +32,10 @@ public class ServerInstance {
 	private static final String PROVISION_MYSQL_SCRIPT="http://" + REPO_SERVER + "/scripts/provision_mysql.sh";
 	private static final String SETUP_NFS_SERVER_SCRIPT="http://" + REPO_SERVER + "/scripts/setup_nfs_server.sh";
 	
-	public ServerInstance(ComputeService computeService, NodeMetadata node, String hostname) {
+	public ServerInstance(ComputeService computeService, String nodeId, String hostname) {
 		// TODO Auto-generated constructor stub
 		this.setComputeservice(computeService);
-		this.setNode(node);
+		this.setNodeId(nodeId);
 		this.setHostname(hostname);
 	}
 	
@@ -61,7 +61,7 @@ public class ServerInstance {
 	public void executeCommand(String command){
 	
 			LoginCredentials login = this.getLoginForProvision();
-			ExecResponse responses = this.computeService.runScriptOnNode(this.node.getId(), Statements.exec(command), 
+			ExecResponse responses = this.computeService.runScriptOnNode(this.getNodeId(), Statements.exec(command), 
 						TemplateOptions.Builder.runScript(command).overrideLoginCredentials(login).runAsRoot(true));
 			System.out.println(responses.getOutput());
 	}
@@ -70,7 +70,7 @@ public class ServerInstance {
 		File script = new File(pathToScript);
 	    LoginCredentials login = this.getLoginForProvision();
 	    try {
-			ExecResponse responses = this.computeService.runScriptOnNode(this.node.getId(), Files.toString(script, Charsets.UTF_8), 
+			ExecResponse responses = this.computeService.runScriptOnNode(this.getNodeId(), Files.toString(script, Charsets.UTF_8), 
 										TemplateOptions.Builder.runScript(Files.toString(script, Charsets.UTF_8)).overrideLoginCredentials(login));
 	    
 			System.out.println(responses.getOutput());
@@ -207,13 +207,7 @@ public class ServerInstance {
 		this.computeService = computeservice;
 	}
 
-	public NodeMetadata getNode() {
-		return node;
-	}
-
-	public void setNode(NodeMetadata node) {
-		this.node = node;
-	}
+	
 
 	public String getHostname() {
 		return hostname;
@@ -221,6 +215,14 @@ public class ServerInstance {
 
 	public void setHostname(String hostname) {
 		this.hostname = hostname;
+	}
+
+	public String getNodeId() {
+		return nodeId;
+	}
+
+	public void setNodeId(String nodeId) {
+		this.nodeId = nodeId;
 	}
 	
 }
