@@ -10,6 +10,7 @@ import org.jclouds.scriptbuilder.domain.Statements;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
+import com.hybris.environment.EnvironmentType;
 import com.hybris.provider.Provider;
 
 public class Ansible {
@@ -74,6 +75,14 @@ public class Ansible {
 		ExecResponse responses = this.computeService.runScriptOnNode(getNodeId(), Statements.exec(command), 
 				TemplateOptions.Builder.runScript(command).overrideLoginCredentials(login).runAsRoot(true));
 		System.out.println(responses.getOutput());
+	}
+	
+	public String getInventoryFile(String projectCode, EnvironmentType environmentType){
+		return "/opt/ansible/inventory/" + projectCode + "_" + environmentType.getCode();
+	}
+	
+	public String getGroupVarsFile(String projectCode, EnvironmentType environmentType){
+		return "/opt/ansible/inventory/group_vars/" + projectCode + "_" + environmentType.getCode();
 	}
 	
 	private LoginCredentials getLoginForProvision(){

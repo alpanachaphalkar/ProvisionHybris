@@ -2,20 +2,21 @@ package com.hybris;
 
 public enum HybrisVersion {
 	
-	Hybris6_2_0("Hybris-6.2.0", "hybris-commerce-suite-6.2.0.4.zip", "solr-multicore-for-hybris-6.2.0.tgz"),
-	Hybris6_3_0("Hybris-6.3.0", "hybris-commerce-suite-6.3.0.5.zip", "solr-multicore-for-hybris-6.3.0.tgz");
+	Hybris6_2_0("Hybris-6.2.0", "hybris-commerce-suite-6.2.0.4.zip", "solr-multicore-for-hybris-6.2.0.tgz", JavaVersion.Java8u131),
+	Hybris6_3_0("Hybris-6.3.0", "hybris-commerce-suite-6.3.0.5.zip", "solr-multicore-for-hybris-6.3.0.tgz", JavaVersion.Java8u131);
 	
-	private String hybrisVersion;
-	private String hybrisPackage;
+	private String version;
+	private String packageName;
 	private String solrPackage;
+	private JavaVersion javaVersion;
 	
-	private HybrisVersion(String hybrisVersion, String hybrisPackage, String solrPackage) {
+	private HybrisVersion(String version, String packageName, String solrPackage, JavaVersion javaVersion) {
 		// TODO Auto-generated constructor stub
-		this.setHybrisVersion(hybrisVersion);
-		this.setHybrisPackage(hybrisPackage);
+		this.setVersion(version);
+		this.setPackageName(packageName);
 		this.setSolrPackage(solrPackage);
+		this.setJavaVersion(javaVersion);
 	}
-	
 
 	public String getSolrPackage() {
 		return solrPackage;
@@ -25,24 +26,33 @@ public enum HybrisVersion {
 		this.solrPackage = solrPackage;
 	}
 
-
-	public String getHybrisVersion() {
-		return hybrisVersion;
+	public JavaVersion getJavaVersion() {
+		return javaVersion;
 	}
 
 
-	public void setHybrisVersion(String hybrisVersion) {
-		this.hybrisVersion = hybrisVersion;
+	public void setJavaVersion(JavaVersion javaVersion) {
+		this.javaVersion = javaVersion;
 	}
 
 
-	public String getHybrisPackage() {
-		return hybrisPackage;
+	public String getVersion() {
+		return version;
 	}
 
 
-	public void setHybrisPackage(String hybrisPackage) {
-		this.hybrisPackage = hybrisPackage;
+	public void setVersion(String version) {
+		this.version = version;
+	}
+
+
+	public String getPackageName() {
+		return packageName;
+	}
+
+
+	public void setPackageName(String packageName) {
+		this.packageName = packageName;
 	}
 	
 }

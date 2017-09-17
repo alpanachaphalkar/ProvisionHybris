@@ -11,6 +11,7 @@ import com.hybris.ConfigurationKeys;
 import com.hybris.HybrisRecipe;
 import com.hybris.HybrisVersion;
 import com.hybris.JavaVersion;
+import com.hybris.ansible.Ansible;
 import com.hybris.provider.Provider;
 
 
@@ -62,7 +63,7 @@ public class Environment {
 		this.environmentType = environment_type;
 	}
 	
-	public Properties getConfigurationProps(HybrisVersion hybrisVersion, HybrisRecipe hybrisRecipe, JavaVersion javaVersion, String domainName){
+/*	public Properties getConfigurationProps(HybrisVersion hybrisVersion, HybrisRecipe hybrisRecipe, JavaVersion javaVersion, String domainName){
 		Properties configurationProps = new Properties();
 		configurationProps.setProperty(ConfigurationKeys.hybris_version.name(), hybrisVersion.getHybrisVersion());
 		configurationProps.setProperty(ConfigurationKeys.hybris_package.name(), hybrisVersion.getHybrisPackage());
@@ -73,17 +74,17 @@ public class Environment {
 		configurationProps.setProperty(ConfigurationKeys.default_shop.name(), hybrisRecipe.getDefaultShop());
 		configurationProps.setProperty(ConfigurationKeys.domain_name.name(), domainName);
 		return configurationProps;
-	}
+	}*/
 	
-	private ServerType getServerType(String hostname){
+/*	private ServerType getServerType(String hostname){
 		
 		String serverTypeCode = hostname.split("-")[3];
 		ServerType serverType = ServerType.Admin;
 		serverType = serverType.getServerType(serverTypeCode);
 		return serverType;
-	}
+	}*/
 	
-	private String getClusterId(String hostname){
+/*	private String getClusterId(String hostname){
 		
 		String clusterId="0";
 		String hostCount=hostname.split("-")[4].substring(2, 3);
@@ -105,7 +106,7 @@ public class Environment {
 		}
 		
 		return clusterId;
-	}
+	}*/
 	
 	public String getHostName(Server server){
 		String hostname = "";
@@ -115,7 +116,83 @@ public class Environment {
 		return hostname;
 	}
 	
-	public HashMap<ServerType, ServerInstance> create(ComputeService computeService, Server[] servers, Properties configurationProps){
+	public String getDomainName(String projectCode, EnvironmentType environmentType){
+		return "www." + projectCode + "-" + environmentType.getCode() + ".com";
+	}
+	
+	public HashMap<ServerType, ServerInstance> create(ComputeService computeService, Server[] servers, HybrisRecipe hybrisRecipe, 
+			                                           HybrisVersion hybrisVersion){
+		
+		HashMap<ServerType, ServerInstance> environmentMap = new HashMap<ServerType, ServerInstance>();
+		
+		if(servers.length == 0){
+			System.out.println("Server list is empty!");
+			return environmentMap;
+		}
+		System.out.println(">> Creating server instances ..");
+		
+		try {
+			
+			for(Server server:servers){
+				Template template = server.getTemplate(this.getProvider(), this.getEnvironmentType());
+				String hostname = this.getHostName(server);
+				ServerInstance serverInstance = server.create(template, hostname);
+				environmentMap.put(server.getServerType(), serverInstance);
+			}
+			
+			System.out.println("<< Server Instances are created for " + this.projectCode + "-" + this.getEnvironmentType().getCode());
+			
+			System.out.println(">> Creating ansible inventory file");
+			
+			Ansible ansible = new Ansible();
+			String inventory = ansible.getInventoryFile(this.projectCode, this.environmentType);
+			String groupVars = ansible.getGroupVarsFile(this.projectCode, this.environmentType);
+			String domainName = this.getDomainName(this.projectCode, this.environmentType);
+			String projectGroup = this.projectCode + "_" + this.environmentType.getCode();
+			
+			ansible.executeCommand("echo \"---\" >>" + groupVars + "; "
+									+ "echo \"repo_server: 54.210.0.102\" >>" + groupVars + "; "
+									+ "echo \"java_version: " + hybrisVersion.getJavaVersion().getVersion() + "\" >>" + groupVars + "; "
+									+ "echo \"java_package: " + hybrisVersion.getJavaVersion().getPackageName() + "\" >>" + groupVars + "; "
+									+ "echo \"hybris_version: " + hybrisVersion.getVersion() + "\" >>" + groupVars + "; "
+									+ "echo \"hybris_package: " + hybrisVersion.getPackageName() + "\" >>" + groupVars + "; "
+									+ "echo \"hybris_recipe: " + hybrisRecipe.getRecipeId() + "\" >>" + groupVars + "; "
+									+ "echo \"solr_package: " + hybrisVersion.getSolrPackage() + "\" >>" + groupVars + "; "
+									+ "echo \"db_driver: mysql-connector-java-5.1.33-bin.jar\" >>" + groupVars + "; "
+									+ "echo \"domain_name: " + domainName + "\" >>" + groupVars + "; "
+									+ "echo \"servers_list:\" >>" + groupVars);
+			
+			ansible.executeCommand("echo \"[all:vars]\" >>" + inventory + "; "
+					               + "echo \"ansible_python_interpreter=/usr/bin/python3\" >>" + inventory + "; "
+					               + "echo \"ansible_ssh_common_args='-o StrictHostKeyChecking=no'\n\" >>" + inventory + "; "
+					               + "echo \"[" + projectGroup + ":children]\" >>" + inventory);
+			
+		   for(Server server:servers){
+			   ansible.executeCommand("echo \"" + server.getServerType().getCode() + "\" >>" + inventory + "; ");
+		   }
+		   
+		   for(Server server:servers){
+			   ServerInstance instance = environmentMap.get(server.getServerType());
+			   String instanceIp = computeService.getNodeMetadata(instance.getNodeId()).getPublicAddresses().iterator().next();
+			   
+			   ansible.executeCommand("echo \"\n[" + server.getServerType().getCode() + ":children]\" >>" + inventory + "; "
+					                  + "echo \"" + instance.getHostname() + "\n\" >>" + inventory + "; "
+					                  + "echo \"[" + instance.getHostname() + "]\" >>" + inventory + "; "
+					                  + "echo \"" + instanceIp + "\" >>" + inventory + "; ");
+			   
+			   ansible.executeCommand("echo \" - type: " + server.getServerType().getCode() + "\" >>" + groupVars + "; "
+					                  + "echo \"   name: " + instance.getHostname() + "\" >>" + groupVars + "; "
+					                  + "echo \"   ip: " + instanceIp + "\" >>" + groupVars + "; ");
+		   }
+		  
+		   ansible.getComputeService().getContext().close();
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		return environmentMap;
+	}
+	
+/*	public HashMap<ServerType, ServerInstance> create(ComputeService computeService, Server[] servers, Properties configurationProps){
 		
 		HashMap<ServerType, ServerInstance> environmentMap = new HashMap<ServerType, ServerInstance>();
 		
@@ -241,7 +318,7 @@ public class Environment {
 		}
 		
 		return environmentMap;
-	}
+	}*/
 	
 	/**
 	 * @param args
@@ -258,13 +335,14 @@ public class Environment {
 								new Server(computeService, ServerType.Web),
 								new Server(computeService, ServerType.Search),
 								new Server(computeService, ServerType.Database)};
-			String projectCode="demoproject";
+			String projectCode="awsdemo";
 			Environment environment = new Environment(provider, projectCode, EnvironmentType.Development);
-			Properties configurationProps = environment.getConfigurationProps(HybrisVersion.Hybris6_3_0, 
+			environment.create(computeService, servers, HybrisRecipe.B2B_Accelerator, HybrisVersion.Hybris6_3_0);
+            /* Properties configurationProps = environment.getConfigurationProps(HybrisVersion.Hybris6_3_0, 
 																			  HybrisRecipe.B2B_Accelerator, 
 																			  JavaVersion.Java8u131, 
 																			  "www." + projectCode + provider.getCode() + "demo.com");
-			environment.create(computeService, servers, configurationProps);
+			environment.create(computeService, servers, configurationProps);*/
 			computeService.getContext().close();
 			
 		}catch(Exception e){

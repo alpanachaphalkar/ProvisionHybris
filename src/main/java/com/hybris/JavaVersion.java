@@ -5,12 +5,12 @@ public enum JavaVersion {
 	Java8u131("jdk-8u131-linux-x64.tgz", "java-8-oracle");
 	
 	private String packageName;
-	private String javaVersion;
+	private String version;
 	
-	private JavaVersion(String packageName, String javaVersion) {
+	private JavaVersion(String packageName, String version) {
 		// TODO Auto-generated constructor stub
 		this.setPackageName(packageName);
-		this.setJavaVersion(javaVersion);
+		this.setVersion(version);
 	}
 
 	public String getPackageName() {
@@ -21,12 +21,12 @@ public enum JavaVersion {
 		this.packageName = packageName;
 	}
 
-	public String getJavaVersion() {
-		return javaVersion;
+	public String getVersion() {
+		return version;
 	}
 
-	public void setJavaVersion(String javaVersion) {
-		this.javaVersion = javaVersion;
+	public void setVersion(String version) {
+		this.version = version;
 	}
 	
 }
