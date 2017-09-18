@@ -1,16 +1,13 @@
 package com.hybris.environment;
 
 import java.util.HashMap;
-import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import org.jclouds.compute.ComputeService;
 import org.jclouds.compute.domain.Template;
 
-import com.hybris.ConfigurationKeys;
 import com.hybris.HybrisRecipe;
 import com.hybris.HybrisVersion;
-import com.hybris.JavaVersion;
 import com.hybris.ansible.Ansible;
 import com.hybris.provider.Provider;
 
@@ -160,6 +157,7 @@ public class Environment {
 									+ "echo \"solr_package: " + hybrisVersion.getSolrPackage() + "\" >>" + groupVars + "; "
 									+ "echo \"db_driver: mysql-connector-java-5.1.33-bin.jar\" >>" + groupVars + "; "
 									+ "echo \"domain_name: " + domainName + "\" >>" + groupVars + "; "
+									+ "echo \"default_shop: " + hybrisRecipe.getDefaultShop() + "\" >>" + groupVars + "; "
 									+ "echo \"servers_list:\" >>" + groupVars);
 			
 			ansible.executeCommand("echo \"[all:vars]\" >>" + inventory + "; "
@@ -335,9 +333,9 @@ public class Environment {
 								new Server(computeService, ServerType.Web),
 								new Server(computeService, ServerType.Search),
 								new Server(computeService, ServerType.Database)};
-			String projectCode="awsdemo";
+			String projectCode="awswadm";
 			Environment environment = new Environment(provider, projectCode, EnvironmentType.Development);
-			environment.create(computeService, servers, HybrisRecipe.B2B_Accelerator, HybrisVersion.Hybris6_3_0);
+			environment.create(computeService, servers, HybrisRecipe.B2B_Accelerator, HybrisVersion.Hybris6_2_0);
             /* Properties configurationProps = environment.getConfigurationProps(HybrisVersion.Hybris6_3_0, 
 																			  HybrisRecipe.B2B_Accelerator, 
 																			  JavaVersion.Java8u131, 
