@@ -25,8 +25,11 @@ public class Ansible {
 	
 	public static final String DEFAULT_ANSIBLE_DIR="/opt/ansible/";
 	public static final String DEFAULT_INVENTORY_DIR = DEFAULT_ANSIBLE_DIR + "inventory/";
+	public static final String DEFAULT_INVENTORY_LOG_DIR = DEFAULT_INVENTORY_DIR + "logs/";
+	public static final String DEFAULT_INVENTORY_GROUP_VARS_DIR = DEFAULT_INVENTORY_DIR + "group_vars/";
 	public static final String DEFAULT_PLABOOKS_DIR = DEFAULT_ANSIBLE_DIR + "playbooks/";
 	public static final String DEFAULT_ROLES_DIR = DEFAULT_PLABOOKS_DIR + "roles/";
+	public static final String CREATE_ENVIRONMENT_PLAYBOOK = DEFAULT_PLABOOKS_DIR + "create_environment.yml";
 	
 	public Ansible() {
 		// TODO Auto-generated constructor stub
@@ -78,11 +81,15 @@ public class Ansible {
 	}
 	
 	public String getInventoryFile(String projectCode, EnvironmentType environmentType){
-		return "/opt/ansible/inventory/" + projectCode + "_" + environmentType.getCode();
+		return DEFAULT_INVENTORY_DIR + projectCode + "_" + environmentType.getCode();
+	}
+	
+	public String getInventoryLogFile(String projectCode, EnvironmentType environmentType){
+		return DEFAULT_INVENTORY_LOG_DIR + projectCode + "_" + environmentType.getCode() + ".log";
 	}
 	
 	public String getGroupVarsFile(String projectCode, EnvironmentType environmentType){
-		return "/opt/ansible/inventory/group_vars/" + projectCode + "_" + environmentType.getCode();
+		return DEFAULT_INVENTORY_GROUP_VARS_DIR + projectCode + "_" + environmentType.getCode();
 	}
 	
 	private LoginCredentials getLoginForProvision(){

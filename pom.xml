@@ -24,6 +24,11 @@
             <version>${jclouds.version}</version>
         </dependency>
         <dependency>
+		    <groupId>org.apache.jclouds.labs</groupId>
+		    <artifactId>azurecompute</artifactId>
+		    <version>${jclouds.version}</version>
+		</dependency>
+        <dependency>
             <groupId>org.apache.jclouds.driver</groupId>
             <artifactId>jclouds-slf4j</artifactId>
             <version>${jclouds.version}</version>

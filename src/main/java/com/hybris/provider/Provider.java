@@ -52,7 +52,9 @@ public enum Provider {
 			case GoogleCloudProvider:
 				identity = this.properties.getProperty("googlecloud.identity");
 				break;
-				
+			case MicrosoftAzure:
+				identity = this.properties.getProperty("azure.identity");
+				break;
 			default:
 				identity = "";
 		}
@@ -89,13 +91,20 @@ public enum Provider {
 			case GoogleCloudProvider:
 				credentials = this.getGcpCredentialFromJsonKey(this.properties.getProperty("googlecloud.credential"));
 				break;
-				
+			case MicrosoftAzure:
+				credentials = this.properties.getProperty("azure.credential");
 			default:
 				credentials = "";
 		}
 		System.out.println(">> Get credential..");
 		return credentials;
 		
+	}
+	
+	private String getAzureEndpoint() throws IOException{
+		
+		this.properties.load(Provider.class.getClassLoader().getResourceAsStream("cloudprovider.properties"));
+		return this.properties.getProperty("azure.endpoint");
 	}
 	
 	private Properties getOverrides(){
@@ -119,10 +128,19 @@ public enum Provider {
 		Iterable<Module> modules = ImmutableSet.<Module> of( new SshjSshClientModule(),
 				                                             new SLF4JLoggingModule());
 		
-		ContextBuilder builder = ContextBuilder.newBuilder(this.getApi())
-			.credentials(this.getIdentity(), this.getCredential())
-			.overrides(this.getOverrides())
-			.modules(modules);
+		ContextBuilder builder = null;
+		if(this.equals(MicrosoftAzure)){
+			builder = ContextBuilder.newBuilder(this.getApi())
+					  .credentials(this.getIdentity(), this.getCredential())
+					  .endpoint(this.getAzureEndpoint())
+					  .overrides(this.getOverrides())
+					  .modules(modules);
+		}else{
+			builder = ContextBuilder.newBuilder(this.getApi())
+					  .credentials(this.getIdentity(), this.getCredential())
+					  .overrides(this.getOverrides())
+					  .modules(modules);
+		}
 		
 		System.out.printf(">> initializing %s%n", builder.getApiMetadata());
 		ComputeServiceContext computeServiceContext = builder.buildView(ComputeServiceContext.class);
