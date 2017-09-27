@@ -26,7 +26,7 @@ public enum Provider {
 	
 	AmazonWebService("aws-ec2", "aws", Region.AWS_UsEast1), 
 	GoogleCloudProvider("google-compute-engine", "gce", Region.GCP_UsEast1b),
-	MicrosoftAzure("azurecompute", "azu", Region.AWS_UsEast1);
+	MicrosoftAzure("azurecompute", "azu", Region.AZU_Central_US);
 	
 	private final String api;
 	private final String code;

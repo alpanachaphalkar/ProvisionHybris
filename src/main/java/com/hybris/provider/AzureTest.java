@@ -1,10 +1,22 @@
 package com.hybris.provider;
 
+import java.util.List;
+
 import org.jclouds.azurecompute.AzureComputeApi;
-import org.jclouds.azurecompute.domain.VMImage;
+import org.jclouds.azurecompute.AzureManagementApiMetadata;
+import org.jclouds.azurecompute.compute.config.AzureComputeServiceContextModule;
 import org.jclouds.compute.ComputeService;
 import org.jclouds.compute.domain.Hardware;
+import org.jclouds.compute.domain.Image;
+import org.jclouds.compute.domain.NodeMetadata;
+import org.jclouds.compute.domain.Template;
+import org.jclouds.compute.domain.TemplateBuilder;
+import org.jclouds.compute.options.TemplateOptions;
 import org.jclouds.domain.Location;
+import org.jclouds.domain.ResourceMetadata;
+
+import com.google.common.collect.Iterables;
+import com.hybris.environment.ServerType;
 
 
 public class AzureTest {
@@ -26,19 +38,49 @@ public class AzureTest {
 		Provider provider = Provider.MicrosoftAzure;
 		ComputeService computeService = provider.getComputeService();
 		
+		/*System.out.println("Azure Locations:");
 		for(Location location:computeService.listAssignableLocations()){
-			System.out.println(location);
-		}
+			System.out.println(location.getId());
+		}*/
+	
+		/*System.out.println("");
 		System.out.println("");
-		System.out.println("");
-        for(VMImage vm:computeService.getContext().unwrapApi(AzureComputeApi.class).getVMImageApi().list()){
-           System.out.println(vm);	 
-        }
-        System.out.println("");
-		System.out.println("");
+		
+		System.out.println("Azure Hardware Profiles:");
 		for(Hardware hrd:computeService.listHardwareProfiles()){
 			System.out.println(hrd);
 		}
+		System.out.println("");
+		System.out.println("");*/
+		/*System.out.println("Azure Images:");
+		for(Image img:computeService.listImages()){
+			if(img.getId().contains("Ubuntu-16") && img.getId().contains("US")){
+				System.out.println(img);
+			}
+		}
+		System.out.println("");
+		System.out.println("");*/
+/*		System.out.println("Azure Security Groups:");
+		String azuImageId = "b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-16_04-LTS-amd64-server-20161221-en-us-30GB/Central US";
+		String azuHardwareId = "STANDARD_D1";
+		String storageAccount = "/subscriptions/ccabb730-6a58-4f2c-bf50-3466ba708c38/resourceGroups/provisionhybrisaccount/providers/Microsoft.Storage/storageAccounts/demostoaco";
+		String virtualNetwork = "/subscriptions/ccabb730-6a58-4f2c-bf50-3466ba708c38/resourceGroups/ProvisionHybrisAccount/providers/Microsoft.Network/virtualNetworks/demo-hybris-vnet";
+		String networkSecurityGroup = "/resourceGroups/Default-Storage-CentralUS/providers/Microsoft.Network/networkSecurityGroups/demo-network-security-group";
+		String subnet = "/subscriptions/ccabb730-6a58-4f2c-bf50-3466ba708c38/resourceGroups/ProvisionHybrisAccount/providers/Microsoft.Network/subnets/demo-hybris-subnet";
+		TemplateBuilder azureTemplateBuilder = computeService.templateBuilder().locationId(provider.getRegion().getID())
+		                                                                            .os64Bit(true)
+		                                                                            .imageId(azuImageId)
+		                                                                            .hardwareId(azuHardwareId);
+		Template template = azureTemplateBuilder.build();
+		//TemplateOptions azuTemplateOptions = template.getOptions();
+		
+		NodeMetadata instance = Iterables.getOnlyElement(computeService.createNodesInGroup("test-instance-hybris", 1, template));
+		System.out.println("<<	Server is created with following details: ");
+		System.out.println("	Name: " + instance.getHostname());
+		System.out.println("	ID: " + instance.getId());
+		System.out.println("	Private IP: " + instance.getPrivateAddresses());
+		System.out.println("	Public IP: " + instance.getPublicAddresses());
+		computeService.getContext().close();*/
     }
 
 }

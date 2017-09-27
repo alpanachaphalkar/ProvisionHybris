@@ -17,6 +17,7 @@ public class Environment {
 	private String projectCode;
 	private EnvironmentType environmentType;
 	private Provider provider;
+	private static final String REPO_SERVER_IP = "54.210.0.102";
 	public static final String SERVER_DOMAIN = ".hybrishosting.com";
 	
 	public Environment(Provider provider, String projectCode, EnvironmentType environmentType) {
@@ -140,6 +141,7 @@ public class Environment {
 			System.out.println("<< Server Instances are created for " + this.projectCode + "-" + this.getEnvironmentType().getCode());
 			
 			System.out.println(">> Creating ansible inventory file");
+			System.out.println("");
 			
 			Ansible ansible = new Ansible();
 			String inventory = ansible.getInventoryFile(this.projectCode, this.environmentType);
@@ -149,7 +151,7 @@ public class Environment {
 			String projectGroup = this.projectCode + "_" + this.environmentType.getCode();
 			
 			ansible.executeCommand("echo \"---\" >>" + groupVars + "; "
-									+ "echo \"repo_server: 54.210.0.102\" >>" + groupVars + "; "
+									+ "echo \"repo_server: " + REPO_SERVER_IP + "\" >>" + groupVars + "; "
 									+ "echo \"java_version: " + hybrisVersion.getJavaVersion().getVersion() + "\" >>" + groupVars + "; "
 									+ "echo \"java_package: " + hybrisVersion.getJavaVersion().getPackageName() + "\" >>" + groupVars + "; "
 									+ "echo \"hybris_version: " + hybrisVersion.getVersion() + "\" >>" + groupVars + "; "
@@ -184,6 +186,13 @@ public class Environment {
 					                  + "echo \"   ip: " + instanceIp + "\" >>" + groupVars + "; ");
 		   }
 		   
+		   System.out.println("<< Inventory file is created on Ansible server at " + inventory);
+		   System.out.println("");
+		   System.out.println(">> Creating Environment ...");
+		   System.out.println("");
+		   
+		   System.out.println(">> Creating inventory log file on Ansible server at " + inventoryLog);
+		   System.out.println("");
 		   ansible.executeCommand("ansible-playbook " + Ansible.CREATE_ENVIRONMENT_PLAYBOOK + " -i " + inventory
 				                  + " >> " + inventoryLog + " 2>&1");
 		   
@@ -330,14 +339,14 @@ public class Environment {
 		long timeStart = System.currentTimeMillis();
 		try{
 			
-			Provider provider = Provider.GoogleCloudProvider;
+			Provider provider = Provider.AmazonWebService;
 			ComputeService computeService = provider.getComputeService();
 			Server[] servers = {new Server(computeService, ServerType.Admin),
 								new Server(computeService, ServerType.Application),
 								new Server(computeService, ServerType.Web),
 								new Server(computeService, ServerType.Search),
 								new Server(computeService, ServerType.Database)};
-			String projectCode="gceb2bh63";
+			String projectCode="awsb2ch62";
 			Environment environment = new Environment(provider, projectCode, EnvironmentType.Development);
 			environment.create(computeService, servers, HybrisRecipe.B2B_Accelerator, HybrisVersion.Hybris6_3_0);
             /* Properties configurationProps = environment.getConfigurationProps(HybrisVersion.Hybris6_3_0, 

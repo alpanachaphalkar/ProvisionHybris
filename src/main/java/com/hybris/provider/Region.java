@@ -22,7 +22,14 @@ public enum Region {
 	GCP_UsCentral1a("us-central1-a"), GCP_UsCentral1b("us-central1-b"), GCP_UsCentral1c("us-central1-c"), GCP_UsCentral1f("us-central1-f"),
 	GCP_UsEast1b("us-east1-b"), GCP_UsEast1c("us-east1-c"), GCP_UsEast1d("us-east1-d"),
 	GCP_UsEast4a("us-east4-a"), GCP_UsEast4b("us-east4-b"), GCP_UsEast4c("us-east4-c"),
-	GCP_UsWest1a("us-west1-a"), GCP_UsWest1b("us-west1-b"), GCP_UsWest1c("us-west1-c");
+	GCP_UsWest1a("us-west1-a"), GCP_UsWest1b("us-west1-b"), GCP_UsWest1c("us-west1-c"),
+	
+	AZU_South_Central_US("South Central US"), AZU_Central_US("Central US"), AZU_West_US_2("West US 2"), AZU_West_Central_US("West Central US"),
+	AZU_North_Europe("North Europe"), AZU_West_Europe("West Europe"), AZU_UK_South("UK South"), AZU_UK_West("UK West"),
+	AZU_Canada_Central("Canada Central"), AZU_Brazil_South("Brazil South"),
+	AZU_Australia_Southeast("Australia Southeast"), AZU_Australia_East("Australia East"),
+	AZU_Southeast_Asia("Southeast Asia"), AZU_Japan_West("Japan West"), AZU_Japan_East("Japan East"),
+	AZU_Central_India("Central India"), AZU_West_India("West India"), AZU_South_India("South India");
 	
 /*	// AWS Region IDs
 	Ap_NorthEast_1(Provider.AmazonWebService, "ap-northeast-1"), Ap_NorthEast_1a(Provider.AmazonWebService, "ap-northeast-1a"), Ap_NorthEast_1c(Provider.AmazonWebService, "ap-northeast-1c"),
