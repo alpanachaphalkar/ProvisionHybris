@@ -17,8 +17,8 @@ public class Environment {
 	private String projectCode;
 	private EnvironmentType environmentType;
 	private Provider provider;
-	private static final String REPO_SERVER_IP = "54.210.0.102";
-	public static final String SERVER_DOMAIN = ".hybrishosting.com";
+	private static final String REPO_SERVER_IP = "54.84.166.214";
+	private static final String DOMAIN=".hybrishosting.com";
 	
 	public Environment(Provider provider, String projectCode, EnvironmentType environmentType) {
 		// TODO Auto-generated constructor stub
@@ -110,11 +110,11 @@ public class Environment {
 		String hostname = "";
 		ServerType serverType = server.getServerType();
 		hostname = this.projectCode + "-" + this.environmentType.getCode() + "-" + this.provider.getCode() + "-" 
-				+ serverType.getCode() + "-001" + SERVER_DOMAIN;
+				+ serverType.getCode() + "-001";
 		return hostname;
 	}
 	
-	public String getDomainName(String projectCode, EnvironmentType environmentType){
+	public String getSiteName(String projectCode, EnvironmentType environmentType){
 		return "www." + projectCode + "-" + environmentType.getCode() + ".com";
 	}
 	
@@ -147,7 +147,7 @@ public class Environment {
 			String inventory = ansible.getInventoryFile(this.projectCode, this.environmentType);
 			String inventoryLog = ansible.getInventoryLogFile(this.projectCode, this.environmentType);
 			String groupVars = ansible.getGroupVarsFile(this.projectCode, this.environmentType);
-			String domainName = this.getDomainName(this.projectCode, this.environmentType);
+			String siteName = this.getSiteName(this.projectCode, this.environmentType);
 			String projectGroup = this.projectCode + "_" + this.environmentType.getCode();
 			
 			ansible.executeCommand("echo \"---\" >>" + groupVars + "; "
@@ -159,7 +159,8 @@ public class Environment {
 									+ "echo \"hybris_recipe: " + hybrisRecipe.getRecipeId() + "\" >>" + groupVars + "; "
 									+ "echo \"solr_package: " + hybrisVersion.getSolrPackage() + "\" >>" + groupVars + "; "
 									+ "echo \"db_driver: mysql-connector-java-5.1.33-bin.jar\" >>" + groupVars + "; "
-									+ "echo \"domain_name: " + domainName + "\" >>" + groupVars + "; "
+									+ "echo \"site_name: " + siteName + "\" >>" + groupVars + "; "
+									+ "echo \"domain_name: " + DOMAIN + "\" >>" + groupVars + "; "
 									+ "echo \"default_shop: " + hybrisRecipe.getDefaultShop() + "\" >>" + groupVars + "; "
 									+ "echo \"servers_list:\" >>" + groupVars);
 			
@@ -339,16 +340,16 @@ public class Environment {
 		long timeStart = System.currentTimeMillis();
 		try{
 			
-			Provider provider = Provider.AmazonWebService;
+			Provider provider = Provider.GoogleCloudProvider;
 			ComputeService computeService = provider.getComputeService();
 			Server[] servers = {new Server(computeService, ServerType.Admin),
 								new Server(computeService, ServerType.Application),
 								new Server(computeService, ServerType.Web),
 								new Server(computeService, ServerType.Search),
 								new Server(computeService, ServerType.Database)};
-			String projectCode="awsb2ch62";
+			String projectCode="gceb2ch62";
 			Environment environment = new Environment(provider, projectCode, EnvironmentType.Development);
-			environment.create(computeService, servers, HybrisRecipe.B2B_Accelerator, HybrisVersion.Hybris6_3_0);
+			environment.create(computeService, servers, HybrisRecipe.B2C_Accelerator, HybrisVersion.Hybris6_2_0);
             /* Properties configurationProps = environment.getConfigurationProps(HybrisVersion.Hybris6_3_0, 
 																			  HybrisRecipe.B2B_Accelerator, 
 																			  JavaVersion.Java8u131, 

@@ -119,6 +119,9 @@ public enum Provider {
 			overrides.setProperty(AWSEC2Constants.PROPERTY_EC2_CC_AMI_QUERY, "");
 		}
 		
+		/*if(this.equals(Provider.MicrosoftAzure)){
+			overrides.setProperty("oauth.endpoint" , "https://login.microsoftonline.com/5bfa8b4b-2f0a-480b-81df-c995a9615f85/oauth2/token");
+		}*/
 		
 		System.out.println(">> Overrides Properties set..");
 		return overrides;

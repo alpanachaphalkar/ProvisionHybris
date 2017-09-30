@@ -5,7 +5,14 @@ import java.util.List;
 import org.jclouds.azurecompute.AzureComputeApi;
 import org.jclouds.azurecompute.AzureManagementApiMetadata;
 import org.jclouds.azurecompute.compute.config.AzureComputeServiceContextModule;
+import org.jclouds.azurecompute.compute.extensions.AzureComputeSecurityGroupExtension;
+import org.jclouds.azurecompute.compute.options.AzureComputeTemplateOptions;
+import org.jclouds.azurecompute.config.AzureComputeProperties;
+import org.jclouds.azurecompute.domain.CreateAffinityGroupParams;
+import org.jclouds.azurecompute.domain.NetworkConfiguration;
+import org.jclouds.azurecompute.features.VirtualNetworkApi;
 import org.jclouds.compute.ComputeService;
+import org.jclouds.compute.ComputeServiceContext;
 import org.jclouds.compute.domain.Hardware;
 import org.jclouds.compute.domain.Image;
 import org.jclouds.compute.domain.NodeMetadata;
@@ -37,12 +44,16 @@ public class AzureTest {
 		System.out.printf(">> initializing %s%n", builder.getApiMetadata());*/
 		Provider provider = Provider.MicrosoftAzure;
 		ComputeService computeService = provider.getComputeService();
-		
-		/*System.out.println("Azure Locations:");
+		/*System.out.println(computeService.getContext().unwrapApi(AzureComputeApi.class).getCloudServiceApi().getProperties(""));*/
+		//System.out.println(computeService.getContext().unwrapApi(AzureComputeApi.class).getVirtualNetworkApi().list());
+		/*Location azureLocation = null;
 		for(Location location:computeService.listAssignableLocations()){
-			System.out.println(location.getId());
-		}*/
-	
+			if(location.getId().equals(provider.getRegion().getID())){
+				azureLocation = location;
+			}
+		}
+		System.out.println(computeService.getSecurityGroupExtension().get().listSecurityGroupsInLocation(azureLocation));*/
+		
 		/*System.out.println("");
 		System.out.println("");
 		
@@ -60,27 +71,24 @@ public class AzureTest {
 		}
 		System.out.println("");
 		System.out.println("");*/
-/*		System.out.println("Azure Security Groups:");
 		String azuImageId = "b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-16_04-LTS-amd64-server-20161221-en-us-30GB/Central US";
 		String azuHardwareId = "STANDARD_D1";
-		String storageAccount = "/subscriptions/ccabb730-6a58-4f2c-bf50-3466ba708c38/resourceGroups/provisionhybrisaccount/providers/Microsoft.Storage/storageAccounts/demostoaco";
-		String virtualNetwork = "/subscriptions/ccabb730-6a58-4f2c-bf50-3466ba708c38/resourceGroups/ProvisionHybrisAccount/providers/Microsoft.Network/virtualNetworks/demo-hybris-vnet";
-		String networkSecurityGroup = "/resourceGroups/Default-Storage-CentralUS/providers/Microsoft.Network/networkSecurityGroups/demo-network-security-group";
-		String subnet = "/subscriptions/ccabb730-6a58-4f2c-bf50-3466ba708c38/resourceGroups/ProvisionHybrisAccount/providers/Microsoft.Network/subnets/demo-hybris-subnet";
+		String azureSecurityGroup = "demo-security-group";
 		TemplateBuilder azureTemplateBuilder = computeService.templateBuilder().locationId(provider.getRegion().getID())
 		                                                                            .os64Bit(true)
 		                                                                            .imageId(azuImageId)
 		                                                                            .hardwareId(azuHardwareId);
 		Template template = azureTemplateBuilder.build();
-		//TemplateOptions azuTemplateOptions = template.getOptions();
-		
-		NodeMetadata instance = Iterables.getOnlyElement(computeService.createNodesInGroup("test-instance-hybris", 1, template));
+		TemplateOptions azuTemplateOptions = template.getOptions();
+		azuTemplateOptions.as(AzureComputeTemplateOptions.class).securityGroups(azureSecurityGroup)
+		                                                        .userMetadata("resourceGroups", "Default-Networking");
+		NodeMetadata instance = Iterables.getOnlyElement(computeService.createNodesInGroup("default-networking", 1, template));
 		System.out.println("<<	Server is created with following details: ");
 		System.out.println("	Name: " + instance.getHostname());
 		System.out.println("	ID: " + instance.getId());
 		System.out.println("	Private IP: " + instance.getPrivateAddresses());
 		System.out.println("	Public IP: " + instance.getPublicAddresses());
-		computeService.getContext().close();*/
+		computeService.getContext().close();
     }
 
 }

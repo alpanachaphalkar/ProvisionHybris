@@ -2,7 +2,6 @@ package com.hybris.environment;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Properties;
 
 import org.jclouds.compute.ComputeService;
 import org.jclouds.compute.domain.ExecResponse;
@@ -12,7 +11,6 @@ import org.jclouds.scriptbuilder.domain.Statements;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
-import com.hybris.ConfigurationKeys;
 
 public class ServerInstance {
 
@@ -21,7 +19,7 @@ public class ServerInstance {
 	private ComputeService computeService;
 	private String hostname;
 	public static final String SERVER_DOMAIN=".hybrishosting.com";
-	private static final String REPO_SERVER="54.210.0.102";
+/*	private static final String REPO_SERVER="54.84.166.214";
 	private static final String SCRIPTS_DIR="/opt/scripts/";
 	private static final String PROVISION_JAVA_SCRIPT="http://" + REPO_SERVER + "/scripts/provision_java.sh";
 	private static final String PROVISION_HYBRIS_SCRIPT="http://" + REPO_SERVER + "/scripts/provision_hybris.sh";
@@ -30,7 +28,7 @@ public class ServerInstance {
 	private static final String INTEGRATE_SOLR_ON_HYBRIS_SCRIPT="http://" + REPO_SERVER + "/scripts/integrate_srch_on_hybris.sh";
 	private static final String PROVISION_WEB_SCRIPT="http://" + REPO_SERVER + "/scripts/provision_web.sh";
 	private static final String PROVISION_MYSQL_SCRIPT="http://" + REPO_SERVER + "/scripts/provision_mysql.sh";
-	private static final String SETUP_NFS_SERVER_SCRIPT="http://" + REPO_SERVER + "/scripts/setup_nfs_server.sh";
+	private static final String SETUP_NFS_SERVER_SCRIPT="http://" + REPO_SERVER + "/scripts/setup_nfs_server.sh";*/
 	
 	public ServerInstance(ComputeService computeService, String nodeId, String hostname) {
 		// TODO Auto-generated constructor stub
@@ -62,7 +60,7 @@ public class ServerInstance {
 	
 			LoginCredentials login = this.getLoginForProvision();
 			ExecResponse responses = this.computeService.runScriptOnNode(this.getNodeId(), Statements.exec(command), 
-						TemplateOptions.Builder.runScript(command).overrideLoginCredentials(login).runAsRoot(true));
+						TemplateOptions.Builder.runScript(command).overrideLoginCredentials(login).runAsRoot(true).wrapInInitScript(false));
 			System.out.println(responses.getOutput());
 	}
 	
@@ -71,8 +69,9 @@ public class ServerInstance {
 	    LoginCredentials login = this.getLoginForProvision();
 	    try {
 			ExecResponse responses = this.computeService.runScriptOnNode(this.getNodeId(), Files.toString(script, Charsets.UTF_8), 
-										TemplateOptions.Builder.runScript(Files.toString(script, Charsets.UTF_8)).overrideLoginCredentials(login));
-	    
+										TemplateOptions.Builder.runScript(Files.toString(script, Charsets.UTF_8))
+										.overrideLoginCredentials(login)
+										.wrapInInitScript(false));
 			System.out.println(responses.getOutput());
 			
 		} catch (IOException e) {
@@ -81,7 +80,7 @@ public class ServerInstance {
 		}
 	}
 	
-	public void setupNfsServer(Properties configurationProps){
+/*	public void setupNfsServer(Properties configurationProps){
 		System.out.println();
 		System.out.println(">> Setting NFS server on " + this.hostname);
 		this.executeCommand("wget " + SETUP_NFS_SERVER_SCRIPT + " -P " + SCRIPTS_DIR);
@@ -197,7 +196,7 @@ public class ServerInstance {
 		this.executeCommand("source " + SCRIPTS_DIR + "initialize_db.sh " + hybrisVersion);
 		System.out.println("<< Initialization of DB completed on " + this.hostname);
 		System.out.println();
-	}
+	}*/
 	
 	public ComputeService getComputeservice() {
 		return computeService;

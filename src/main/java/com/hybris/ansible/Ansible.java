@@ -76,7 +76,7 @@ public class Ansible {
 	public void executeCommand(String command){
 		LoginCredentials login = this.getLoginForProvision();
 		ExecResponse responses = this.computeService.runScriptOnNode(getNodeId(), Statements.exec(command), 
-				TemplateOptions.Builder.runScript(command).overrideLoginCredentials(login).runAsRoot(true));
+				TemplateOptions.Builder.runScript(command).overrideLoginCredentials(login).runAsRoot(true).wrapInInitScript(false));
 		System.out.println(responses.getOutput());
 	}
 	

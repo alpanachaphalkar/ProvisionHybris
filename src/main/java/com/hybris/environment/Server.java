@@ -20,7 +20,7 @@ public class Server {
 
 	private ServerType serverType;
 	private ComputeService computeservice;
-	public static final String SERVER_DOMAIN=".hybrishosting.com";
+	public static final String DOMAIN=".hybrishosting.com";
 	
 	public Server(ComputeService computeService, ServerType type) {
 		// TODO Auto-generated constructor stub
@@ -119,8 +119,9 @@ public class Server {
 	public ServerInstance create(Template template, String hostname) throws Exception{
 		System.out.println();
 		System.out.println(">> Creating instance " + hostname);
-		String host = hostname.replace(SERVER_DOMAIN, "");
-		NodeMetadata instance = Iterables.getOnlyElement(this.computeservice.createNodesInGroup(host, 1, template));
+		//String host = hostname.replace(SERVER_DOMAIN, "");
+		String fully_qualified_domain_name = hostname + DOMAIN;
+		NodeMetadata instance = Iterables.getOnlyElement(this.computeservice.createNodesInGroup(hostname, 1, template));
 		System.out.println("<<	Server " + hostname + " is created with following details: ");
 		System.out.println("	Name: " + instance.getHostname());
 		System.out.println("	ID: " + instance.getId());
@@ -128,7 +129,8 @@ public class Server {
 		System.out.println("	Public IP: " + instance.getPublicAddresses());
 		ServerInstance serverInstance = new ServerInstance(this.computeservice, instance.getId(), hostname);
 		System.out.println(">> Setting hostname");
-		serverInstance.executeCommand("hostnamectl set-hostname " + hostname + "; echo \"127.0.0.1 `hostname`\" >>/etc/hosts");
+		serverInstance.executeCommand("hostnamectl set-hostname " + hostname + 
+				                      "; echo \"127.0.0.1 " + fully_qualified_domain_name + " " + hostname + "\" >>/etc/hosts");
 		System.out.println("<< Instance is created with hostname " + hostname);
 		System.out.println();
 		return serverInstance;
