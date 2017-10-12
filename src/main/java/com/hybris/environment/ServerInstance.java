@@ -18,7 +18,7 @@ public class ServerInstance {
 	private String nodeId;
 	private ComputeService computeService;
 	private String hostname;
-	public static final String SERVER_DOMAIN=".hybrishosting.com";
+	public static final String DOMAIN=".hybrishosting.com";
 /*	private static final String REPO_SERVER="54.84.166.214";
 	private static final String SCRIPTS_DIR="/opt/scripts/";
 	private static final String PROVISION_JAVA_SCRIPT="http://" + REPO_SERVER + "/scripts/provision_java.sh";

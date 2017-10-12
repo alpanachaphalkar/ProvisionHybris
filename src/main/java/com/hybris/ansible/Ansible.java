@@ -1,6 +1,8 @@
 package com.hybris.ansible;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import org.jclouds.compute.ComputeService;
 import org.jclouds.compute.domain.ExecResponse;
@@ -17,7 +19,7 @@ public class Ansible {
 	
 	private static final String INSTANCE_NAME="demo-ansible-server";
 	private static final String HOSTNAME="yms-demo-aws-ansible-001.hybrishosting.com";
-	private static final String PUBLIC_IP="54.84.166.214";
+	private static final String PUBLIC_IP="54.152.16.177";
 	private static final String PRIVATE_IP="10.10.1.21";
 	private static final Provider PROVIDER = Provider.AmazonWebService;
 	private static final String NODE_ID="us-east-1/i-0cec1dee114ec98fe";
@@ -85,7 +87,8 @@ public class Ansible {
 	}
 	
 	public String getInventoryLogFile(String projectCode, EnvironmentType environmentType){
-		return DEFAULT_INVENTORY_LOG_DIR + projectCode + "_" + environmentType.getCode() + ".log";
+		String timeStamp = new SimpleDateFormat("dd_MM_yyyy-HH_mm_ss").format(new Date());
+		return DEFAULT_INVENTORY_LOG_DIR + projectCode + "_" + environmentType.getCode() + "-" + timeStamp + ".log";
 	}
 	
 	public String getGroupVarsFile(String projectCode, EnvironmentType environmentType){
@@ -108,6 +111,13 @@ public class Ansible {
 		
 		return null;
 		
+	}
+	
+	public static void main(String[] args){
+		Ansible ansible = new Ansible();
+		String projectCode="dreamproject";
+		EnvironmentType envType = EnvironmentType.Development;
+		System.out.println(ansible.getInventoryLogFile(projectCode, envType));
 	}
 	
 }

@@ -17,7 +17,7 @@ public class Environment {
 	private String projectCode;
 	private EnvironmentType environmentType;
 	private Provider provider;
-	private static final String REPO_SERVER_IP = "54.84.166.214";
+	private static final String REPO_SERVER_IP = "54.152.16.177";
 	private static final String DOMAIN=".hybrishosting.com";
 	
 	public Environment(Provider provider, String projectCode, EnvironmentType environmentType) {
@@ -46,6 +46,10 @@ public class Environment {
 			System.exit(0);
 		}else if(project_code.matches("^[a-zA-Z0-9]*$")){
 			this.projectCode = project_code.toLowerCase();
+		}else if(project_code.length() != 9){
+			System.out.println("Project code length should be 9");
+			this.projectCode=null;
+			System.exit(0);
 		}else{
 			System.out.println("Special charachters are not accepteble for project code.");
 			this.projectCode=null;
@@ -193,11 +197,13 @@ public class Environment {
 		   System.out.println("");
 		   
 		   System.out.println(">> Creating inventory log file on Ansible server at " + inventoryLog);
+		   computeService.getContext().close();
 		   System.out.println("");
 		   ansible.executeCommand("ansible-playbook " + Ansible.CREATE_ENVIRONMENT_PLAYBOOK + " -i " + inventory
-				                  + " >> " + inventoryLog + " 2>&1");
+				                  + " >> " + inventoryLog);
 		   
 		   ansible.getComputeService().getContext().close();
+		   
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
@@ -340,22 +346,22 @@ public class Environment {
 		long timeStart = System.currentTimeMillis();
 		try{
 			
-			Provider provider = Provider.GoogleCloudProvider;
+			Provider provider = Provider.AmazonWebService;
 			ComputeService computeService = provider.getComputeService();
 			Server[] servers = {new Server(computeService, ServerType.Admin),
 								new Server(computeService, ServerType.Application),
 								new Server(computeService, ServerType.Web),
 								new Server(computeService, ServerType.Search),
 								new Server(computeService, ServerType.Database)};
-			String projectCode="gceb2ch62";
+			String projectCode="dreamopro";
 			Environment environment = new Environment(provider, projectCode, EnvironmentType.Development);
-			environment.create(computeService, servers, HybrisRecipe.B2C_Accelerator, HybrisVersion.Hybris6_2_0);
+			environment.create(computeService, servers, HybrisRecipe.B2B_Accelerator, HybrisVersion.Hybris6_2_0);
             /* Properties configurationProps = environment.getConfigurationProps(HybrisVersion.Hybris6_3_0, 
 																			  HybrisRecipe.B2B_Accelerator, 
 																			  JavaVersion.Java8u131, 
 																			  "www." + projectCode + provider.getCode() + "demo.com");
-			environment.create(computeService, servers, configurationProps);*/
-			computeService.getContext().close();
+			environment.create(computeService, servers, configurationProps);
+			computeService.getContext().close();*/
 			
 		}catch(Exception e){
 			e.printStackTrace();
