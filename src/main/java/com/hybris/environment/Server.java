@@ -90,21 +90,6 @@ public class Server {
 																				.userMetadata("ssh-keys", GcePublicKey)
 																				.tags(tags);
 				break;
-			/*case MicrosoftAzure:
-				String azuImageId = "b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-16_04-LTS-amd64-server-20161221-en-us-30GB/Central US";
-				String azuHardwareId = "";
-				if(this.serverType.equals(ServerType.Admin) || this.serverType.equals(ServerType.Application)){
-					azuHardwareId = "STANDARD_D2";
-				}else{
-					azuHardwareId = "STANDARD_D1";
-				}
-				TemplateBuilder azureTemplateBuilder = this.computeservice.templateBuilder().locationId(provider.getRegion().getID())
-				                                                                            .os64Bit(true)
-				                                                                            .imageId(azuImageId)
-				                                                                            .hardwareId(azuHardwareId);
-				template = azureTemplateBuilder.build();
-				TemplateOptions azuTemplateOptions = template.getOptions();
-				break;*/
 			default:
 				break;
 			}
