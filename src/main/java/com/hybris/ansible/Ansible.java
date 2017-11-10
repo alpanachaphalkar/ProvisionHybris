@@ -113,11 +113,11 @@ public class Ansible {
 		
 	}
 	
-	public static void main(String[] args){
+/*	public static void main(String[] args){
 		Ansible ansible = new Ansible();
 		String projectCode="dreamproject";
 		EnvironmentType envType = EnvironmentType.Development;
 		System.out.println(ansible.getInventoryLogFile(projectCode, envType));
-	}
+	}*/
 	
 }
