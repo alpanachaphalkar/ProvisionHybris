@@ -86,6 +86,8 @@ public class Environment {
 			System.out.println("Server list is empty!");
 			return environmentMap;
 		}
+		
+		long timeStart = System.currentTimeMillis();
 		System.out.println(">> Creating server instances ..");
 		
 		try {
@@ -98,6 +100,11 @@ public class Environment {
 			}
 			
 			System.out.println("<< Server Instances are created for " + this.projectCode + "-" + this.getEnvironmentType().getCode());
+			
+			long provisionTimeEnd = System.currentTimeMillis();
+			long provisionDuration = provisionTimeEnd - timeStart;
+			long provisionMinutes = TimeUnit.MILLISECONDS.toMinutes(provisionDuration);
+			System.out.println("Time utilised for execution of Provisioning part: " + provisionMinutes + " minutes");
 			
 			System.out.println(">> Creating ansible inventory file");
 			System.out.println("");
@@ -159,6 +166,15 @@ public class Environment {
 		   
 		   ansible.getComputeService().getContext().close();
 		   
+		   long deploymentTimeEnd = System.currentTimeMillis();
+		   long deploymentDuration = deploymentTimeEnd - provisionTimeEnd;
+		   long deploymentMinutes = TimeUnit.MILLISECONDS.toMinutes(deploymentDuration);
+		   System.out.println("Time utilised for execution of Deployment part: " + deploymentMinutes + " minutes");
+		   
+		   long totalDuration = deploymentTimeEnd - timeStart;
+		   long totalMinutes = TimeUnit.MILLISECONDS.toMinutes(totalDuration);
+		   System.out.println("Time utilised for execution of Deployment part: " + totalMinutes + " minutes");
+		   
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
@@ -170,7 +186,6 @@ public class Environment {
 	 */
 	public static void main(String[] args){
 		
-		long timeStart = System.currentTimeMillis();
 		try{
 			
 			Provider provider = Provider.AmazonWebService;
@@ -180,9 +195,9 @@ public class Environment {
 								new Server(computeService, ServerType.Web),
 								new Server(computeService, ServerType.Search),
 								new Server(computeService, ServerType.Database)};
-			String projectCode="projectb2b";
+			String projectCode="awsb2c62";
 			Environment environment = new Environment(provider, projectCode, EnvironmentType.Development);
-			environment.create(computeService, servers, HybrisRecipe.B2B_Accelerator, HybrisVersion.Hybris6_2_0);
+			environment.create(computeService, servers, HybrisRecipe.B2C_Accelerator, HybrisVersion.Hybris6_2_0);
             /* Properties configurationProps = environment.getConfigurationProps(HybrisVersion.Hybris6_3_0, 
 																			  HybrisRecipe.B2B_Accelerator, 
 																			  JavaVersion.Java8u131, 
@@ -194,10 +209,6 @@ public class Environment {
 			e.printStackTrace();
 		}
 		
-		long timeEnd = System.currentTimeMillis();
-		long duration = timeEnd - timeStart;
-		long minutes = TimeUnit.MILLISECONDS.toMinutes(duration);
-		System.out.println("Time utilised for execution: " + minutes + " minutes");
 	}
 	
 }
