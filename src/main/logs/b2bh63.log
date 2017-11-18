@@ -1,0 +1,84 @@
+>> Get identity..
+>> Get credential..
+>> Overrides Properties set..
+>> initializing {id=google-compute-engine, name=Google Compute Engine Api, views=[org.jclouds.compute.ComputeServiceContext], endpointName=https endpoint, identityName=client_email which usually looks like project_id@developer.gserviceaccount.com or project_id-extended_uid@developer.gserviceaccount.com or account@project_id.company_domain.iam.gserviceaccount.com or account@project_id.iam.gserviceaccount.com., credentialName=Optional.of(PEM encoded P12 private key associated with client_email), documentation=https://developers.google.com/compute/docs, api=interface org.jclouds.googlecomputeengine.GoogleComputeEngineApi}
+SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
+SLF4J: Defaulting to no-operation (NOP) logger implementation
+SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
+>> Creating server instances ..
+
+>> Creating instance b2bh63-d-gce-app-001
+<<	Server b2bh63-d-gce-app-001 is created with following details: 
+	Name: b2bh63-d-gce-app-001-b30
+	ID: https://www.googleapis.com/compute/v1/projects/provisionhybris/zones/us-east1-b/instances/b2bh63-d-gce-app-001-b30
+	Private IP: [10.142.0.2]
+	Public IP: [35.190.157.56]
+>> Setting hostname
+
+<< Instance is created with hostname b2bh63-d-gce-app-001
+
+
+>> Creating instance b2bh63-d-gce-web-001
+<<	Server b2bh63-d-gce-web-001 is created with following details: 
+	Name: b2bh63-d-gce-web-001-755
+	ID: https://www.googleapis.com/compute/v1/projects/provisionhybris/zones/us-east1-b/instances/b2bh63-d-gce-web-001-755
+	Private IP: [10.142.0.3]
+	Public IP: [104.196.184.17]
+>> Setting hostname
+
+<< Instance is created with hostname b2bh63-d-gce-web-001
+
+
+>> Creating instance b2bh63-d-gce-srch-001
+<<	Server b2bh63-d-gce-srch-001 is created with following details: 
+	Name: b2bh63-d-gce-srch-001-6f9
+	ID: https://www.googleapis.com/compute/v1/projects/provisionhybris/zones/us-east1-b/instances/b2bh63-d-gce-srch-001-6f9
+	Private IP: [10.142.0.4]
+	Public IP: [35.185.123.60]
+>> Setting hostname
+
+<< Instance is created with hostname b2bh63-d-gce-srch-001
+
+
+>> Creating instance b2bh63-d-gce-db-001
+<<	Server b2bh63-d-gce-db-001 is created with following details: 
+	Name: b2bh63-d-gce-db-001-1fb
+	ID: https://www.googleapis.com/compute/v1/projects/provisionhybris/zones/us-east1-b/instances/b2bh63-d-gce-db-001-1fb
+	Private IP: [10.142.0.5]
+	Public IP: [35.196.24.119]
+>> Setting hostname
+
+<< Instance is created with hostname b2bh63-d-gce-db-001
+
+<< Server Instances are created for b2bh63-d
+Time utilised for execution of Provisioning part: 4 minutes
+>> Creating ansible inventory file
+
+>> Get identity..
+>> Get credential..
+>> Overrides Properties set..
+>> initializing {id=aws-ec2, name=Amazon-specific EC2 API, views=[org.jclouds.aws.ec2.compute.AWSEC2ComputeServiceContext], endpointName=https endpoint, identityName=Access Key ID, credentialName=Optional.of(Secret Access Key), documentation=http://docs.amazonwebservices.com/AWSEC2/latest/APIReference, api=interface org.jclouds.aws.ec2.AWSEC2Api}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<< Inventory file is created on Ansible server at /opt/ansible/inventory/b2bh63_d
+
+>> Creating Environment ...
+
+>> Creating inventory log file on Ansible server at /opt/ansible/inventory/logs/b2bh63_d-18_11_2017-18_41_29.log
+
+
+Shop is available on gce.b2bh63.alpana.info with IP: 104.196.184.17
+Time utilised for execution of Deployment part: 36 minutes
+Time utilised for execution of Deployment part: 40 minutes

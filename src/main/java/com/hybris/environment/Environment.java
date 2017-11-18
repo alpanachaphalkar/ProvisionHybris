@@ -94,7 +94,7 @@ public class Environment {
 		try {
 			
 			for(Server server:servers){
-				Template template = server.getTemplate(this.getProvider(), this.getEnvironmentType());
+				Template template = server.getTemplate(computeService, this.getProvider(), this.getEnvironmentType());
 				String hostname = this.getHostName(server);
 				ServerInstance serverInstance = server.create(computeService, template, hostname);
 				environmentMap.put(server.getServerType(), serverInstance);
@@ -194,14 +194,14 @@ public class Environment {
 		
 		try{
 			
-			Provider provider = Provider.AmazonWebService;
+			Provider provider = Provider.GoogleCloudProvider;
 			ComputeService computeService = provider.getComputeService();
-			String projectCode="b2ch62";
+			String projectCode="b2bh63";
 			Environment environment = new Environment(provider, projectCode, 
 													   EnvironmentType.Development);
-			environment.create(computeService, EnvironmentKind.HybrisClustered, 
-											   HybrisRecipe.B2C_Accelerator, 
-											   HybrisVersion.Hybris6_2_0);
+			environment.create(computeService, EnvironmentKind.NonClustered, 
+											   HybrisRecipe.B2B_Accelerator, 
+											   HybrisVersion.Hybris6_3_0);
 			
 		}catch(Exception e){
 			e.printStackTrace();

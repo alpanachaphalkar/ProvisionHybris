@@ -19,7 +19,6 @@ import com.hybris.provider.Provider;
 public class Server {
 
 	private ServerType serverType;
-	private ComputeService computeservice;
 	public static final String DOMAIN=".hybrishosting.com";
 	
 	public Server(ServerType type) {
@@ -35,7 +34,7 @@ public class Server {
 		this.serverType = serverType;
 	}
 	
-	public Template getTemplate(Provider provider, EnvironmentType environmentType){
+	public Template getTemplate(ComputeService computeService, Provider provider, EnvironmentType environmentType){
 		
 		Template template = null;
 		String keyName = "alpanachaphalkar";
@@ -48,7 +47,7 @@ public class Server {
 				String awsSubnetId = "subnet-13d3fb5b";
 				String awsSecuritygroupId = "sg-8651acf6";
 				String awsDeviceName = "/dev/sda1";
-				TemplateBuilder awsTemplateBuilder = this.computeservice.templateBuilder().locationId(provider.getRegion().getID())
+				TemplateBuilder awsTemplateBuilder = computeService.templateBuilder().locationId(provider.getRegion().getID())
 																				  .imageId(awsImageId)
 																				  .hardwareId(awsHardwareId);
 				template = awsTemplateBuilder.build();
@@ -72,7 +71,7 @@ public class Server {
 				String gceSecurityGroupId = "demo-hybris-firewall";
 				ArrayList<String> tags = new ArrayList<String>();
 				tags.add(gceSecurityGroupId);
-				TemplateBuilder gceTemplateBuilder = this.computeservice.templateBuilder().locationId(provider.getRegion().getID())
+				TemplateBuilder gceTemplateBuilder = computeService.templateBuilder().locationId(provider.getRegion().getID())
 																							.os64Bit(true)
 																							.imageId(gceImageId)
 																							.hardwareId(gceHardwareId);
@@ -98,13 +97,13 @@ public class Server {
 		System.out.println(">> Creating instance " + hostname);
 		//String host = hostname.replace(SERVER_DOMAIN, "");
 		String fully_qualified_domain_name = hostname + DOMAIN;
-		NodeMetadata instance = Iterables.getOnlyElement(this.computeservice.createNodesInGroup(hostname, 1, template));
+		NodeMetadata instance = Iterables.getOnlyElement(computeService.createNodesInGroup(hostname, 1, template));
 		System.out.println("<<	Server " + hostname + " is created with following details: ");
 		System.out.println("	Name: " + instance.getHostname());
 		System.out.println("	ID: " + instance.getId());
 		System.out.println("	Private IP: " + instance.getPrivateAddresses());
 		System.out.println("	Public IP: " + instance.getPublicAddresses());
-		ServerInstance serverInstance = new ServerInstance(this.computeservice, instance.getId(), hostname);
+		ServerInstance serverInstance = new ServerInstance(computeService, instance.getId(), hostname);
 		System.out.println(">> Setting hostname");
 		serverInstance.executeCommand("hostnamectl set-hostname " + hostname + 
 				                      "; echo \"127.0.0.1 " + fully_qualified_domain_name + " " + hostname + "\" >>/etc/hosts");
