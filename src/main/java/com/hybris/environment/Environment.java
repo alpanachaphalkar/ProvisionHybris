@@ -74,13 +74,14 @@ public class Environment {
 	}
 	
 	public String getSiteName(String projectCode, EnvironmentType environmentType){
-		return "www." + projectCode + "-" + environmentType.getCode() + ".com";
+		return this.getProvider().getCode() + "." + projectCode + ".alpana.info";
 	}
 	
-	public HashMap<ServerType, ServerInstance> create(ComputeService computeService, Server[] servers, HybrisRecipe hybrisRecipe, 
-			                                           HybrisVersion hybrisVersion){
+	public HashMap<ServerType, ServerInstance> create(ComputeService computeService, EnvironmentKind environmentKind, 
+			                                          HybrisRecipe hybrisRecipe, HybrisVersion hybrisVersion){
 		
 		HashMap<ServerType, ServerInstance> environmentMap = new HashMap<ServerType, ServerInstance>();
+		Server servers[] = environmentKind.getServers();
 		
 		if(servers.length == 0){
 			System.out.println("Server list is empty!");
@@ -95,7 +96,7 @@ public class Environment {
 			for(Server server:servers){
 				Template template = server.getTemplate(this.getProvider(), this.getEnvironmentType());
 				String hostname = this.getHostName(server);
-				ServerInstance serverInstance = server.create(template, hostname);
+				ServerInstance serverInstance = server.create(computeService, template, hostname);
 				environmentMap.put(server.getServerType(), serverInstance);
 			}
 			
@@ -139,10 +140,13 @@ public class Environment {
 			   ansible.executeCommand("echo \"" + server.getServerType().getCode() + "\" >>" + inventory + "; ");
 		   }
 		   
+		   String siteIP = "";
 		   for(Server server:servers){
 			   ServerInstance instance = environmentMap.get(server.getServerType());
 			   String instanceIp = computeService.getNodeMetadata(instance.getNodeId()).getPublicAddresses().iterator().next();
-			   
+			   if(server.getServerType().equals(ServerType.Web)){
+				   siteIP = instanceIp;
+			   }
 			   ansible.executeCommand("echo \"\n[" + server.getServerType().getCode() + ":children]\" >>" + inventory + "; "
 					                  + "echo \"" + instance.getHostname() + "\n\" >>" + inventory + "; "
 					                  + "echo \"[" + instance.getHostname() + "]\" >>" + inventory + "; "
@@ -165,6 +169,8 @@ public class Environment {
 				                  + " >> " + inventoryLog);
 		   
 		   ansible.getComputeService().getContext().close();
+		   
+		   System.out.println("Shop is available on " + siteName + " with IP: " + siteIP);
 		   
 		   long deploymentTimeEnd = System.currentTimeMillis();
 		   long deploymentDuration = deploymentTimeEnd - provisionTimeEnd;
@@ -190,20 +196,12 @@ public class Environment {
 			
 			Provider provider = Provider.AmazonWebService;
 			ComputeService computeService = provider.getComputeService();
-			Server[] servers = {new Server(computeService, ServerType.Admin),
-								new Server(computeService, ServerType.Application),
-								new Server(computeService, ServerType.Web),
-								new Server(computeService, ServerType.Search),
-								new Server(computeService, ServerType.Database)};
-			String projectCode="awsb2c62";
-			Environment environment = new Environment(provider, projectCode, EnvironmentType.Development);
-			environment.create(computeService, servers, HybrisRecipe.B2C_Accelerator, HybrisVersion.Hybris6_2_0);
-            /* Properties configurationProps = environment.getConfigurationProps(HybrisVersion.Hybris6_3_0, 
-																			  HybrisRecipe.B2B_Accelerator, 
-																			  JavaVersion.Java8u131, 
-																			  "www." + projectCode + provider.getCode() + "demo.com");
-			environment.create(computeService, servers, configurationProps);
-			computeService.getContext().close();*/
+			String projectCode="b2ch62";
+			Environment environment = new Environment(provider, projectCode, 
+													   EnvironmentType.Development);
+			environment.create(computeService, EnvironmentKind.HybrisClustered, 
+											   HybrisRecipe.B2C_Accelerator, 
+											   HybrisVersion.Hybris6_2_0);
 			
 		}catch(Exception e){
 			e.printStackTrace();

@@ -22,25 +22,17 @@ public class Server {
 	private ComputeService computeservice;
 	public static final String DOMAIN=".hybrishosting.com";
 	
-	public Server(ComputeService computeService, ServerType type) {
+	public Server(ServerType type) {
 		// TODO Auto-generated constructor stub
-		this.setComputeservice(computeService);
 		this.setServerType(type);
 	}
 	
 	public ServerType getServerType() {
 		return serverType;
 	}
+	
 	public void setServerType(ServerType serverType) {
 		this.serverType = serverType;
-	}
-
-	public ComputeService getComputeservice() {
-		return computeservice;
-	}
-
-	public void setComputeservice(ComputeService computeservice) {
-		this.computeservice = computeservice;
 	}
 	
 	public Template getTemplate(Provider provider, EnvironmentType environmentType){
@@ -101,7 +93,7 @@ public class Server {
 		
 	}
 	
-	public ServerInstance create(Template template, String hostname) throws Exception{
+	public ServerInstance create(ComputeService computeService, Template template, String hostname) throws Exception{
 		System.out.println();
 		System.out.println(">> Creating instance " + hostname);
 		//String host = hostname.replace(SERVER_DOMAIN, "");

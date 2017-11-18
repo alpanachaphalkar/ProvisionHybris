@@ -1,0 +1,98 @@
+>> Get identity..
+>> Get credential..
+>> Overrides Properties set..
+>> initializing {id=aws-ec2, name=Amazon-specific EC2 API, views=[org.jclouds.aws.ec2.compute.AWSEC2ComputeServiceContext], endpointName=https endpoint, identityName=Access Key ID, credentialName=Optional.of(Secret Access Key), documentation=http://docs.amazonwebservices.com/AWSEC2/latest/APIReference, api=interface org.jclouds.aws.ec2.AWSEC2Api}
+SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
+SLF4J: Defaulting to no-operation (NOP) logger implementation
+SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
+>> Creating server instances ..
+
+>> Creating instance b2ch62-d-aws-adm-001
+<<	Server b2ch62-d-aws-adm-001 is created with following details: 
+	Name: ip-10-10-1-76
+	ID: us-east-1/i-061795a5167510746
+	Private IP: [10.10.1.76]
+	Public IP: [54.236.6.166]
+>> Setting hostname
+
+<< Instance is created with hostname b2ch62-d-aws-adm-001
+
+
+>> Creating instance b2ch62-d-aws-app-001
+<<	Server b2ch62-d-aws-app-001 is created with following details: 
+	Name: ip-10-10-1-82
+	ID: us-east-1/i-08db1b13b3f06705d
+	Private IP: [10.10.1.82]
+	Public IP: [34.229.6.170]
+>> Setting hostname
+
+<< Instance is created with hostname b2ch62-d-aws-app-001
+
+
+>> Creating instance b2ch62-d-aws-web-001
+<<	Server b2ch62-d-aws-web-001 is created with following details: 
+	Name: ip-10-10-1-154
+	ID: us-east-1/i-014e76589fec37cc4
+	Private IP: [10.10.1.154]
+	Public IP: [54.172.34.45]
+>> Setting hostname
+
+<< Instance is created with hostname b2ch62-d-aws-web-001
+
+
+>> Creating instance b2ch62-d-aws-srch-001
+<<	Server b2ch62-d-aws-srch-001 is created with following details: 
+	Name: ip-10-10-1-112
+	ID: us-east-1/i-088d593f566249907
+	Private IP: [10.10.1.112]
+	Public IP: [107.20.22.149]
+>> Setting hostname
+
+<< Instance is created with hostname b2ch62-d-aws-srch-001
+
+
+>> Creating instance b2ch62-d-aws-db-001
+<<	Server b2ch62-d-aws-db-001 is created with following details: 
+	Name: ip-10-10-1-133
+	ID: us-east-1/i-026a751595a86c496
+	Private IP: [10.10.1.133]
+	Public IP: [52.72.154.143]
+>> Setting hostname
+
+<< Instance is created with hostname b2ch62-d-aws-db-001
+
+<< Server Instances are created for b2ch62-d
+Time utilised for execution of Provisioning part: 5 minutes
+>> Creating ansible inventory file
+
+>> Get identity..
+>> Get credential..
+>> Overrides Properties set..
+>> initializing {id=aws-ec2, name=Amazon-specific EC2 API, views=[org.jclouds.aws.ec2.compute.AWSEC2ComputeServiceContext], endpointName=https endpoint, identityName=Access Key ID, credentialName=Optional.of(Secret Access Key), documentation=http://docs.amazonwebservices.com/AWSEC2/latest/APIReference, api=interface org.jclouds.aws.ec2.AWSEC2Api}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<< Inventory file is created on Ansible server at /opt/ansible/inventory/b2ch62_d
+
+>> Creating Environment ...
+
+>> Creating inventory log file on Ansible server at /opt/ansible/inventory/logs/b2ch62_d-18_11_2017-14_31_00.log
+
+
+Shop is available on aws.b2ch62.alpana.info with IP: 54.172.34.45
+Time utilised for execution of Deployment part: 39 minutes
+Time utilised for execution of Deployment part: 44 minutes
