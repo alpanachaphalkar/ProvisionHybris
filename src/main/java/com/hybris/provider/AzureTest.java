@@ -42,8 +42,8 @@ public class AzureTest {
 				                 .credentials(P12FILE, "")
 				                 .modules(modules);
 		System.out.printf(">> initializing %s%n", builder.getApiMetadata());*/
-		Provider provider = Provider.MicrosoftAzure;
-		ComputeService computeService = provider.getComputeService();
+		/*Provider provider = Provider.MicrosoftAzure;
+		ComputeService computeService = provider.getComputeService();*/
 		/*System.out.println(computeService.getContext().unwrapApi(AzureComputeApi.class).getCloudServiceApi().getProperties(""));*/
 		//System.out.println(computeService.getContext().unwrapApi(AzureComputeApi.class).getVirtualNetworkApi().list());
 		/*Location azureLocation = null;
@@ -71,7 +71,7 @@ public class AzureTest {
 		}
 		System.out.println("");
 		System.out.println("");*/
-		String azuImageId = "b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-16_04-LTS-amd64-server-20161221-en-us-30GB/Central US";
+/*		String azuImageId = "b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-16_04-LTS-amd64-server-20161221-en-us-30GB/Central US";
 		String azuHardwareId = "STANDARD_D1";
 		String azureSecurityGroup = "demo-security-group";
 		TemplateBuilder azureTemplateBuilder = computeService.templateBuilder().locationId(provider.getRegion().getID())
@@ -88,7 +88,7 @@ public class AzureTest {
 		System.out.println("	ID: " + instance.getId());
 		System.out.println("	Private IP: " + instance.getPrivateAddresses());
 		System.out.println("	Public IP: " + instance.getPublicAddresses());
-		computeService.getContext().close();
+		computeService.getContext().close();*/
     }
 
 }
