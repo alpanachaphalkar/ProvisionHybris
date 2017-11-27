@@ -1,0 +1,84 @@
+>> Get identity..
+>> Get credential..
+>> Overrides Properties set..
+>> initializing {id=aws-ec2, name=Amazon-specific EC2 API, views=[org.jclouds.aws.ec2.compute.AWSEC2ComputeServiceContext], endpointName=https endpoint, identityName=Access Key ID, credentialName=Optional.of(Secret Access Key), documentation=http://docs.amazonwebservices.com/AWSEC2/latest/APIReference, api=interface org.jclouds.aws.ec2.AWSEC2Api}
+SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
+SLF4J: Defaulting to no-operation (NOP) logger implementation
+SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
+>> Creating server instances ..
+
+>> Creating instance dream-d-aws-app-001
+<<	Server dream-d-aws-app-001 is created with following details: 
+	Name: ip-10-10-1-195
+	ID: us-east-1/i-024465e4f787c45eb
+	Private IP: [10.10.1.195]
+	Public IP: [204.236.201.210]
+>> Setting hostname
+
+<< Instance is created with hostname dream-d-aws-app-001
+
+
+>> Creating instance dream-d-aws-web-001
+<<	Server dream-d-aws-web-001 is created with following details: 
+	Name: ip-10-10-1-87
+	ID: us-east-1/i-02d8ba748c136dad4
+	Private IP: [10.10.1.87]
+	Public IP: [54.210.44.101]
+>> Setting hostname
+
+<< Instance is created with hostname dream-d-aws-web-001
+
+
+>> Creating instance dream-d-aws-srch-001
+<<	Server dream-d-aws-srch-001 is created with following details: 
+	Name: ip-10-10-1-222
+	ID: us-east-1/i-04358f6250a8e4621
+	Private IP: [10.10.1.222]
+	Public IP: [54.145.16.91]
+>> Setting hostname
+
+<< Instance is created with hostname dream-d-aws-srch-001
+
+
+>> Creating instance dream-d-aws-db-001
+<<	Server dream-d-aws-db-001 is created with following details: 
+	Name: ip-10-10-1-152
+	ID: us-east-1/i-0a9f2e42c5985732f
+	Private IP: [10.10.1.152]
+	Public IP: [34.228.44.255]
+>> Setting hostname
+
+<< Instance is created with hostname dream-d-aws-db-001
+
+<< Server Instances are created for dream-d
+Time utilised for execution of Provisioning part: 3 minutes
+>> Creating ansible inventory file
+
+>> Get identity..
+>> Get credential..
+>> Overrides Properties set..
+>> initializing {id=aws-ec2, name=Amazon-specific EC2 API, views=[org.jclouds.aws.ec2.compute.AWSEC2ComputeServiceContext], endpointName=https endpoint, identityName=Access Key ID, credentialName=Optional.of(Secret Access Key), documentation=http://docs.amazonwebservices.com/AWSEC2/latest/APIReference, api=interface org.jclouds.aws.ec2.AWSEC2Api}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<< Inventory file is created on Ansible server at /opt/ansible/inventory/dream_d
+
+>> Creating Environment ...
+
+>> Creating inventory log file on Ansible server at /opt/ansible/inventory/logs/dream_d-20_11_2017-10_56_13.log
+
+
+Shop is available on aws.dream.alpana.info with IP: 54.210.44.101
+Time utilised for execution of Deployment part: 23 minutes
+Time utilised for execution of Deployment part: 27 minutes

@@ -1,0 +1,84 @@
+>> Get identity..
+>> Get credential..
+>> Overrides Properties set..
+>> initializing {id=aws-ec2, name=Amazon-specific EC2 API, views=[org.jclouds.aws.ec2.compute.AWSEC2ComputeServiceContext], endpointName=https endpoint, identityName=Access Key ID, credentialName=Optional.of(Secret Access Key), documentation=http://docs.amazonwebservices.com/AWSEC2/latest/APIReference, api=interface org.jclouds.aws.ec2.AWSEC2Api}
+SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
+SLF4J: Defaulting to no-operation (NOP) logger implementation
+SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
+>> Creating server instances ..
+
+>> Creating instance demo-d-aws-app-001
+<<	Server demo-d-aws-app-001 is created with following details: 
+	Name: ip-10-10-1-251
+	ID: us-east-1/i-0b59c7e1b2956f51a
+	Private IP: [10.10.1.251]
+	Public IP: [34.224.90.129]
+>> Setting hostname
+
+<< Instance is created with hostname demo-d-aws-app-001
+
+
+>> Creating instance demo-d-aws-web-001
+<<	Server demo-d-aws-web-001 is created with following details: 
+	Name: ip-10-10-1-56
+	ID: us-east-1/i-0f32bdd2132bcae18
+	Private IP: [10.10.1.56]
+	Public IP: [184.73.140.59]
+>> Setting hostname
+
+<< Instance is created with hostname demo-d-aws-web-001
+
+
+>> Creating instance demo-d-aws-srch-001
+<<	Server demo-d-aws-srch-001 is created with following details: 
+	Name: ip-10-10-1-149
+	ID: us-east-1/i-0c5be833dbc8cc1b3
+	Private IP: [10.10.1.149]
+	Public IP: [34.235.137.219]
+>> Setting hostname
+
+<< Instance is created with hostname demo-d-aws-srch-001
+
+
+>> Creating instance demo-d-aws-db-001
+<<	Server demo-d-aws-db-001 is created with following details: 
+	Name: ip-10-10-1-45
+	ID: us-east-1/i-08fcb2fc580508113
+	Private IP: [10.10.1.45]
+	Public IP: [34.229.89.227]
+>> Setting hostname
+
+<< Instance is created with hostname demo-d-aws-db-001
+
+<< Server Instances are created for demo-d
+Time utilised for execution of Provisioning part: 3 minutes
+>> Creating ansible inventory file
+
+>> Get identity..
+>> Get credential..
+>> Overrides Properties set..
+>> initializing {id=aws-ec2, name=Amazon-specific EC2 API, views=[org.jclouds.aws.ec2.compute.AWSEC2ComputeServiceContext], endpointName=https endpoint, identityName=Access Key ID, credentialName=Optional.of(Secret Access Key), documentation=http://docs.amazonwebservices.com/AWSEC2/latest/APIReference, api=interface org.jclouds.aws.ec2.AWSEC2Api}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<< Inventory file is created on Ansible server at /opt/ansible/inventory/demo_d
+
+>> Creating Environment ...
+
+>> Creating inventory log file on Ansible server at /opt/ansible/inventory/logs/demo_d-24_11_2017-14_43_07.log
+
+
+Shop is available on aws.demo.alpana.info with IP: 184.73.140.59
+Time utilised for execution of Deployment part: 27 minutes
+Time utilised for execution of Deployment part: 31 minutes

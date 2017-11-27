@@ -194,9 +194,9 @@ public class Environment {
 		
 		try{
 			
-			Provider provider = Provider.GoogleCloudProvider;
+			Provider provider = Provider.AmazonWebService;
 			ComputeService computeService = provider.getComputeService();
-			String projectCode="b2bh63";
+			String projectCode="demo";
 			Environment environment = new Environment(provider, projectCode, 
 													   EnvironmentType.Development);
 			environment.create(computeService, EnvironmentKind.NonClustered, 
